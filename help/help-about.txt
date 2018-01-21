@@ -1,0 +1,11 @@
+Direct Code V1.4
+Author: Mike Yaunish
+
+This project has been inspired by the work and observations of Bret Victor. 
+
+This is more than just a programming curiousity. I believe that this kind of direct interaction 
+with our programming efforts can lead to a whole new way of thinking and creating. Also
+I think this is an inevitable progression of modern programming.
+
+Any environment devoid of easy experimentation and play is missing a whole spectrum of creative 
+expression and invention.
