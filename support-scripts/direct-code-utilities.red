@@ -11,6 +11,7 @@ string-to-block: function [
     s [string!]
     /no-indent
 ][
+    if s = none! [ return [] ]
 	lines: split s "^/"
 	res: copy ""
 	if ((trim (copy lines/1)) = "") [
@@ -23,7 +24,9 @@ string-to-block: function [
 	        append res rejoin [ "    " l "^/" ]    
 	    ]
 	]
-	return rejoin [ "[^/" res "]" ]
+	remove back tail res 
+	post-fix: either  ((last res) = #"^/") [ "]" ][ "^/]"]
+	return rejoin [ "[^/" res post-fix ]
 ] 
 
 un-block-string: function [ b [string!] ] [
@@ -35,6 +38,7 @@ un-block-string: function [ b [string!] ] [
     foreach l lines [ 
         append res rejoin [ l newline ]
     ]
+    remove back tail res 
     return res
 ]
 
@@ -136,57 +140,6 @@ get-terse-face: function [ obj-name [string!] ] [
 	return temp-obj
 ]
 
-change-function-in-object: func [ 
-    obj 
-    func-name 
-    func-body 
-    /top
-][
-    action: either top [:insert ][:append] ; defaults to append
-	cur-func: select obj (to-lit-word func-name)
-	f-spec: spec-of :cur-func
-	f-body: body-of :cur-func
-	action f-body func-body
-	new-line f-body true
-	new-func: func f-spec f-body 
-	do [ to-set-path [ obj (to-word func-name) ] :new-func ]
-]
-
-track-changes: closure [
-	tracked-objects: [] [block!] 
-	tracked-deep-objects: [] [block!] 
-
-][	
-	obj-name [string!]
-	/deep
-	/local track-block current-version obj-word last-version the-obj track-head
-][ 
-    triggers: [ 'offset ]   ; dc-matrix/<obj-type>/<changed-field>
-                            ; will eventually be matching against track changes 'word 
-	track-block: either deep [ :tracked-deep-objects ] [ :tracked-objects ]
-    current-version: get-terse-face obj-name
-    obj-word: to-word obj-name
-    last-version: track-block/:obj-word
-    the-obj: get obj-word
-    copy-obj-name: copy obj-name
-    either last-version [
-		obj-changes: compare-objects/show-diffs last-version current-version
-		track-head: either deep [ "|  DEEP TRACK|" ] [ "|NORMAL TRACK|" ]
-		foreach changed-field obj-changes [
-			a: last-version/:changed-field
-			b: current-version/:changed-field
-			if find triggers changed-field [
-			    obj-type-to-word: the-obj/type
-			    action-object-name: dc-matrix/:obj-type-to-word/:changed-field
-			    dc-ctx/update-source-code obj-name action-object-name
-			]
-		]
-		track-block/:obj-word: current-version
-	][
-	    insert track-block reduce [ to-set-word obj-name get-terse-face obj-name ]
-	]
-]
-
 link-offset: func [left right] [
 	left/offset/y: to integer! right/offset/y - (divide (left/size/y - right/size/y ) 2)
     left/offset/x: to integer! right/offset/x - (divide (left/size/x - right/size/x ) 2)
@@ -222,4 +175,224 @@ popup-help: func [
         popup no-title
     ]
     view-options
+]
+
+get-uid: does [
+	return replace/all replace/all (to-string now/time/precise) ":" "" "." ""
+]
+
+find-in-array-at: function [ 
+    blk [any-type!] 
+    at-loc [integer!] 
+    find-this 
+    /with-index 
+    /every 
+    /local ndx i collected
+    
+][
+	prin "" ;-- ADDING THIS LINE FIXES the crash when using: Red 0.6.4 for Windows built 8-Jan-2021/16:47:49 
+	
+	collected: copy []
+	if ((length? blk) < 1) [
+	    return false
+	]
+	ndx: 1 
+	foreach i blk [ 
+		if find-this = (pick i at-loc) [        
+			either with-index [                 
+			    either every [
+			                                    
+                    append/only collected reduce [ i ndx ]
+			    ][                             
+			        return reduce [ i ndx ]	    
+			    ]
+			][                                  
+			    either every [                  
+			        append/only collected i
+			    ][                              
+			        return i                    
+			    ]
+			]
+		]
+		ndx: ndx + 1
+	]
+	
+	if every [
+	    either ((length? collected ) = 0 ) [
+	        return false
+	    ][
+	        return collected
+	    ]
+	]
+	return false	
+]
+
+index-of-value: function [ 
+    {Example usage: index-of-value [ at 10x12 button  "hello"] 'at pair! 
+     Will return true.}
+    obj-blk [block!]
+    key-word [word!]
+    value-type [datatype!]
+][ 	
+    direct-key-words: [ 'at ] ; keywords that point DIRECTLY to the correct position
+    valid-pre-words: [ left center right top middle bottom bold italic underline hidden ]
+    valid-pre-types: reduce [ string! pair! tuple! integer! path! paren! date! block! ]
+	key-word: to-lit-word key-word
+	if (find direct-key-words key-word )[
+	    either (sel: find obj-blk key-word) [
+	        return ((index? sel) + 1)    
+	    ][
+	        return false
+	    ]
+	]
+    ; all other key-words look for the value-type
+    ret-ndx: 0
+	either ( key-pos: find obj-blk key-word ) [
+	    type-blk: collect [ foreach i obj-blk [ keep (type? i ) ] ]
+	    append valid-pre-words key-word
+	    key-pos-ndx: index? key-pos
+    	while [ ret-ndx = 0 ] [
+    	    either (fnd: find (skip type-blk key-pos-ndx ) value-type ) [ ; value-type positions is located
+    	        fnd-ndx: index? fnd 
+    	        previous-word: pick obj-blk  (fnd-ndx - 1)
+    	        previous-type: pick type-blk (fnd-ndx - 1)
+    	            	        
+    	        if all [ 
+    	            (previous-type = word!) 
+    	            (not find valid-pre-words previous-word)
+    	            (value? to-lit-word previous-word )
+    	        ][
+    	            previous-type: type? get previous-word
+    	        ]
+    	        either any [ 
+    	            ( fpw: find valid-pre-words previous-word ) 
+    	            ( fpt: find valid-pre-types previous-type ) 
+    	        ][ ; previous item is either a valid word! or type!
+    	            ret-ndx: fnd-ndx
+    	        ][
+    	           key-pos-ndx: fnd-ndx  
+    	        ]
+    	    ][
+    	        return false
+    	    ]
+    	]
+	][
+	    return false
+	]
+	return ret-ndx
+]
+
+
+create-modified-source: func [ 
+    source-text  [ string! ] {Original source code}
+    source-block [ block!  ] {Original souce code - in block format}
+    change-block [ block!  ] {Changed source code - in block format}
+    change-index [ block!  ] {Index values where changes need to happen}
+    /inserted
+][
+    
+    p-bdy: copy []
+    chg-blk-ndx: 0
+    ci-offset: 1
+    ci-length: length? change-index
+    curr-change-index: pick change-index ci-offset
+    spaces: [ any [" " | "^/" | "^-"]]
+    change-block: to-parse-input-block change-block
+    foreach i change-block [
+        chg-blk-ndx: chg-blk-ndx + 1
+        either ( curr-change-index = chg-blk-ndx )[
+            src-val: pick source-block curr-change-index
+            new-val: pick change-block curr-change-index
+            either inserted [
+                if ((type? new-val) = string!) [ new-val: form-string new-val ]
+                new-val: rejoin [ new-val " " ]
+                append p-bdy compose [ insert (new-val) ]
+            ][
+                make-parse-rule src-val
+                append p-bdy compose/only [ remove thru (make-parse-rule src-val) insert (mold new-val) ]    
+            ]
+            ci-offset: ci-offset + 1
+            either ci-offset > ci-length [
+                break        
+            ][
+                curr-change-index: pick change-index ci-offset
+            ]
+        ][
+            append p-bdy compose/only [ (make-parse-rule i) spaces ]    
+        ]
+    ]
+    parse-res: parse source-text [  
+        some [ 
+            p-bdy
+        ]
+    ]
+    return source-text 
+]
+
+compare-object-contents: function ['a 'b /return-diffs ][
+    a: get a
+    b: get b
+	diff-list: copy []
+    foreach [word val] body-of a [
+		either any [ (any-function? :val ) ((type? val) = object!)  ] [
+		][
+	        either equal? :val get in b reduce (to-lit-word word) [
+    	    ][
+				if return-diffs [
+					append diff-list to-word word					
+				]
+			]
+		]
+    ]
+	return diff-list
+] 
+
+requester-window-escape: func [ code req-obj-name /options win-opts ][
+    if not options [ win-opts: copy [] ]
+    return compose/deep [ 
+	    actors: object [
+    		on-key: func [face event] [
+    			switch event/key [
+    				#"^["  [ (code) ]
+    			]
+    		]
+    		on-close: func [ face event ] [
+    		    (code)
+    		]
+            on-menu: func [face [object!] event [event!]][ 
+                switch event/picked [
+                    highlight-object [ do-to-object (req-obj-name) "highlight" ]
+                    copy-object-to-clip [ do-to-object (req-obj-name) "copy-to-clip"  ]
+                    delete-object [ do-to-object (req-obj-name) "delete"  ]
+                ] 
+            ]     		
+	    ]
+	    (win-opts)
+	]
+]
+spaces: [ any [" " | "^/" | "^-"]]
+
+point-in-triangle?: function [
+    pt [pair!]
+    v1 [pair!]
+    v2 [pair!]
+    v3 [pair!]
+][
+    sign-of-point: function [ p1 p2 p3 ] [
+        return ( ((p1/x - p3/x) * (p2/y - p3/y)) - ((p2/x - p3/x) * (p1/y - p3/y)) )
+    ]        
+    d1: sign-of-point pt v1 v2
+    d2: sign-of-point pt v2 v3
+    d3: sign-of-point pt v3 v1
+    has-neg: any [ (d1 < 0)  (d2 < 0)  (d3 < 0) ]
+    has-pos: any [ (d1 > 0)  (d2 > 0)  (d3 > 0) ]
+    return not all [ (has-neg) (has-pos)]
+]
+
+closure: func [
+    vars [block!] "Values to close over, in spec block format"
+    spec [block!] "Function spec for closure func"
+    body [block!] "Body of closure func; vars will be available"
+][
+    func spec compose [(bind body context vars)]
 ]

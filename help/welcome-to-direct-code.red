@@ -4,36 +4,23 @@ Red [
 	Comment: "Generated with Direct Code"
 ]
 
-
 do setup:[
-	red-box-position: 474x368
-    ;--               /\ /\ /\
-    ;--               || || || 
-    ;--********** WATCH THIS CODE CHANGE **************
-    ;--********** WHEN YOU MOVE AND DROP THE RED BOX **
+
 ]
-
-
-view [
+;Direct Code VID Code source marker - DO NOT MODIFY THIS LINE OR THE NEXT LINE!
+view welcome-to-direct-code-layout: [
     style text: text font-size 14
-    H3 "Welcome to 'Direct Code'" underline bold
+    h3-text: H3 "Welcome to Direct Code V2.0" underline bold
     return
-    area font-size 12 700x300 {Direct Code has been built on the foundation of livecode-enhanced, which was written by Nenad 
-Rakocevic and Didier Cadieu.  
+    area1: area font-size 12 580x220 
 
-The Red code on the left side is creating everything you see on this right side.
-
-This is my first attempt at a 'direct manipulation' environment for Red, where you are able
-to edit your Red code like normal (on the left) or you can change the source code by directly 
-manipulating the objects rendered (on the right side).
-
-As a proof of concept the only ACTION currently available is to MOVE 'named' objects on 
-the right side and have the code reflect those changes (on the left). This is the very first 
-steps to a WYSIWYG environment for programming in Red.}
+{Direct Code has been built on the foundation of livecode-enhanced, which was^/written by Nenad Rakocevic and Didier Cadieu.^/^/The Red code on the left side is creating everything you see on this right side.^/^/All of the 'livecode' features (changing code and seeing results instantly) are^/still available and some 'direct manipulation' actions have been added to allow^/for the beginings of a WYSIWYG (What you see is what you get) environment.^/}
     return
-    button "See a demonstration of Direct Manipulation >>" font-size 12 bold [
-    	load-and-run %direct-manipulation-demo.red 
+    at 11x292 button1: button 336x25 " See the quick start guide to Direct Code" font-size 12  center bold [
+    	load-and-run %quick-start-guide.red 
     ]
      
+    
+    
     
 ]
