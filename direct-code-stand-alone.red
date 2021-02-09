@@ -4,7 +4,7 @@ Red [
 ]
 
 lprint: function [ s ] [
-    write/append/lines %direct-code.log form reduce s    
+    write/append/lines %direct-code.log form reduce s
 ]
 
 bprint: function [ s ] [
@@ -12,15 +12,15 @@ bprint: function [ s ] [
     lprint s
 ]
 
-set 'load-and-run function [ filename /no-save] [ ; load-and-run:
-    either (value? 'dc-initialized)  [ ; loading into the development environment
-        dc-load-direct-code filename
+set 'load-and-run function [ filename /no-save] [ ; load-and-run: 
+    either (value? 'dc-ctx) [
+        dc-ctx/load-direct-code filename
         either no-save [
-            run-and-save/no-save    
+            dc-ctx/run-and-save/no-save    
         ][
-            run-and-save
+            dc-ctx/run-and-save
         ]
-    ][  ; loading the file as a stand alone program
+    ][
         filename: clean-path filename
         if (exists? filename)[
             unview/all
