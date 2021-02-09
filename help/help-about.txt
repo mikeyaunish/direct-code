@@ -1,11 +1,9 @@
-Direct Code V1.4
+Direct Code V2.0
 Author: Mike Yaunish
 
+Direct Code has been built on the foundation of livecode-enhanced, which was
+written by Nenad Rakocevic and Didier Cadieu.
+
 This project has been inspired by the work and observations of Bret Victor. 
-
-This is more than just a programming curiousity. I believe that this kind of direct interaction 
-with our programming efforts can lead to a whole new way of thinking and creating. Also
-I think this is an inevitable progression of modern programming.
-
-Any environment devoid of easy experimentation and play is missing a whole spectrum of creative 
-expression and invention.
+I hope Direct Code can make the process of programming more playful, experimental and 
+inventive.

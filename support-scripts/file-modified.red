@@ -14,7 +14,7 @@ file-modified?: closure [
 	call-cmd: rejoin [ {forfiles /P } local-path " /M " local-file { /c "cmd /c echo @file @ftime"} ]
 	call-output: copy ""
 	call/output call-cmd call-output
-	file-stamp: delim-extract/first call-output {" } "^/" 	
+	file-stamp: delim-extract/first call-output {" } "^/" 	; This " is a matching quotes so syntax highlighting in my editor works ok
 
 	either last-stamp [
 		either last-stamp <> file-stamp [

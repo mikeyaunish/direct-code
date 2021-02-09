@@ -1,1 +1,9 @@
-filename %help/welcome-to-direct-code.red setup-size 846x123 vid-size 846x368 output-panel-size 894x593 live-update? false
+
+    filename %help/welcome-to-direct-code.red 
+    setup-size 789x212 
+    vid-size 789x342 
+    output-panel-size 895x648 
+    live-update? false 
+    red-executable "" 
+    external-editor ""     
+    recent-files []
