@@ -190,7 +190,7 @@ find-in-array-at: function [
     /local ndx i collected
     
 ][
-	prin "" ;-- ADDING THIS LINE FIXES the crash when using: Red 0.6.4 for Windows built 8-Jan-2021/16:47:49 
+	;prin "" ;-- ADDING THIS LINE FIXES the crash when using: Red 0.6.4 for Windows built 8-Jan-2021/16:47:49 
 	
 	collected: copy []
 	if ((length? blk) < 1) [

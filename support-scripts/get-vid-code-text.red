@@ -48,11 +48,9 @@ flatten-paren: function [
 to-parse-input-block: function
 [
 	block [block!]
-	/local flat-block
 ] [
     flatten-paren flatten-block block
 ]
-
 
 
 get-vid-code-block: func [  
@@ -68,27 +66,27 @@ get-vid-code-block: func [
         ]
     ]
     red-block: to-parse-input-block to-block red-code
-    red-code: red-block
+    red-code: copy red-block
     defined-styles: get-styles red-code
     vid-object-names: [ 
         'window | 'base | 'button | 'text | 'field | 'area | 'check | 'radio | 'progress | 'slider | 
         'camera | 'text-list | 'drop-list | 'drop-down | 'calendar | 'panel | 'group-box | 'tab-panel | 
         'h1 | 'h2 | 'h3 | 'h4 | 'h5 | 'box | 'image | 'across | 'below | 'return | 'space | 
-        'origin | 'pad | 'do | 'rich-text |
+        'origin | 'pad |  'rich-text |  'do |
         'WINDOW | 'BASE | 'BUTTON | 'TEXT | 'FIELD | 'AREA | 'CHECK | 'RADIO | 'PROGRESS | 'SLIDER | 
         'CAMERA | 'TEXT-LIST | 'DROP-LIST | 'DROP-DOWN | 'CALENDAR | 'PANEL | 'GROUP-BOX | 'TAB-PANEL | 
         'H1 | 'H2 | 'H3 | 'H4 | 'H5 | 'BOX | 'IMAGE | 'ACROSS | 'BELOW | 'RETURN | 'SPACE | 
-        'ORIGIN | 'PAD | 'DO | 'RICH-TEXT
+        'ORIGIN | 'PAD | 'RICH-TEXT  | 'DO
     ]
     foreach i defined-styles [
         append vid-object-names reduce [ '| (to-lit-word i ) ]
     ]    
-    
     obj-ndx: -10
     set-word-ndx: -10
     at-ndx: -10
     obj-positions: copy []
     break-next: 'false
+    square-bracket-count: 0
     parse red-code [
     	any [
             copy -at at-mark: 'at (
@@ -98,23 +96,28 @@ get-vid-code-block: func [
 			    set-word-ndx: index? set-word-mark 
 			)            
 			| copy -object obj-mark: vid-object-names (
-			    obj-ndx: index? obj-mark
-			    obj-start-pos: obj-ndx
-			    prepend-msg: copy ""
-			    either ((obj-ndx - set-word-ndx) = 1)[ ; previous set-word applies to this object
-			        obj-start-pos: obj-ndx  - 1
-			        cur-obj-name: to-word -set-word/1
-			        prepend-msg: rejoin [ " OBJ-NAME:" -set-word ":"]
-			    ][
-			        cur-obj-name: 'anonymous
-			        prepend-msg: rejoin [ " OBJ-NAME:<anon>"]
-			    ]
-			    if ((obj-start-pos - at-ndx) = 2)[ ; 'at applies to this object 
-			        prepend-msg: rejoin [ prepend-msg " using (AT)"  ]
-			        obj-start-pos: obj-start-pos  - 2
-			    ]
-			    append/only obj-positions reduce [ cur-obj-name obj-start-pos ]
-			) 
+			    if square-bracket-count = 0 [
+    			    obj-ndx: index? obj-mark
+    			    obj-start-pos: obj-ndx
+
+    			    either ((obj-ndx - set-word-ndx) = 1)[ ; previous set-word applies to this object
+    			        obj-start-pos: obj-ndx  - 1
+    			        cur-obj-name: to-word -set-word/1
+    			    ][
+    			        cur-obj-name: 'anonymous
+    			    ]
+    			    if ((obj-start-pos - at-ndx) = 2)[ ; 'at applies to this object 
+    			        obj-start-pos: obj-start-pos  - 2
+    			    ]
+    			    append/only obj-positions reduce [ cur-obj-name obj-start-pos ]
+    			]
+			)
+			| open-square: #"[" ( 
+			        square-bracket-count: square-bracket-count + 1
+			    ) 
+            | close-square: #"]" (
+                    square-bracket-count: square-bracket-count - 1
+                )			    
 			| skip 	
     	]
     ]
@@ -127,8 +130,7 @@ get-vid-code-block: func [
             (pick (pick obj-positions (fnd-obj/2 + 1)) 2) - fnd-obj/1/2
         ]
         str-pos: ( fnd-obj/1/2 - 1)
-        z: copy/part skip red-code str-pos code-length
-        return z
+        copy/part skip red-code str-pos code-length
     ][
         'false
     ]
@@ -255,6 +257,7 @@ make-parse-rule: function [ v ] [
 get-vid-code-text: function [ txt-src blk-src /return-positions /extern dc-src-txt dc-p-rule ] [ 
     result: copy ""
     blk-src: to-parse-input-block blk-src
+    
     
     p-beg-code: [( 
             str-ndx: (index? beg) - (length? vid-code-mold first blk-src ) - 1 

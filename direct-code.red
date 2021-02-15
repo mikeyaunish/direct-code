@@ -2,7 +2,7 @@ Red [
     Title:   "Direct Code"
     Author:  "Nenad Rakocevic / Didier Cadieu / Mike Yaunish"
     File:    %direct-code.red
-    Version: 1.4.0
+    Version: 2.0.1
     Needs:   'View
     Usage:  {
         Continuation of sample livecode-enhanced.red script. from Nenad and Didier.
@@ -21,7 +21,8 @@ Red [
                              to see details of the object that you are over (Mike)}
         1.4.0 "13-12-2017"   {Start adding direct maninpulation features and rename project 'direct-code' to 
                               reflect the impetus to create a larger scope for the project(Mike)}
-        2.0.0 "03-01-2021"   {Full rewrite of code generation engine. }                              
+        2.0.0 "03-01-2021"   {Full rewrite of code generation engine. (Mike)}   
+        2.0.1 "15-02-2021"   {Correctly parse blocks imbedded in vid code}                           
     ]
     Tabs: 4
 ]
@@ -62,6 +63,7 @@ dc-ctx: context [
             obj1/offset: to-pair obj2/text
         ]
         set 'requester-locations-used copy [] 
+        
 
         set 'requester-slot function [ 
             /add-slot the-obj-name win-name variables-list reactions-list
@@ -547,6 +549,7 @@ requester-window-escape/options [
         reflect-changes: make object! [
             trigger-list: copy []
             set 'previous-obj-vals copy []
+            
             save-object-vals: function [ obj-name [string!] /remove-vals ][ ; defaults to saving all of the values
                 either remove-vals [
                     fnd: find-in-array-at/with-index previous-obj-vals 1 obj-name
@@ -567,6 +570,17 @@ requester-window-escape/options [
                     ]
                 ]
             ]
+            set 'change-source func [ 
+            	obj-name [string!]      {Name of object}
+            	field-name [string!]    {Field name you want to change}
+            	value                   {Value you want to set field to}
+            ][
+                save-object-vals obj-name
+            	do reduce [ to-set-path reduce [ to-word obj-name to-word field-name ] value ]
+            	trigger-modifications obj-name field-name	
+            	save-object-vals/remove-vals obj-name
+            ]        
+            
             link-gui-fields: function [ trig-tgt trig-src ] [
             	trig-tgt/text:   trig-src/text
             	trig-tgt/offset: trig-src/offset
@@ -633,7 +647,6 @@ requester-window-escape/options [
                         modify-source-code/prepend reduce [ obj-name "at" ] field-name 
            		    ]    
            		    "text" [
-           		        ;print "trigger-modifications $field-type=TEXT"
                         if fnd: find-in-array-at previous-obj-vals 1 obj-name [
                             old-val: get in fnd/2 to-lit-word field-name
                             new-val: any [ (get in ( get (to-lit-word obj-name)) to-lit-word field-name) "" ]
