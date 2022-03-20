@@ -1,4 +1,4 @@
-Direct Code V2.0
+Direct Code V3.0 
 Author: Mike Yaunish
 
 Direct Code has been built on the foundation of livecode-enhanced, which was

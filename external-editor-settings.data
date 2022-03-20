@@ -1,0 +1,30 @@
+[   
+    identifier "notepad.exe" 
+    needs-shell? "yes"
+    plain-open [ editor-executable " " filename ]
+]
+[
+    identifier "notepad++.exe" 
+    plain-open [ editor-executable " " filename ]
+    open-to-line [ editor-executable " -n" line-num " " filename ]
+    open-to-column [ editor-executable " -n" line-num " -c" col-num " " filename]
+] 
+[
+    identifier "REDEDITOR" 
+    plain-open [ editor-executable " " filename ]
+    open-to-line [ editor-executable " -n" line-num " " filename ]
+    open-to-column [ editor-executable " -n" line-num " -c" col-num filename]
+] 
+[
+    identifier "UltraEdit" 
+    plain-open [ editor-executable " " filename ]
+    open-to-line [ editor-executable " " filename " -l" line-num ]
+    open-to-column [ editor-executable " " filename " -l" line-num " -c" col-num ]
+]
+[
+    identifier "Code.exe" 
+    comment "VSCode"
+    plain-open [ {"} editor-executable {"} " " filename ]
+    open-to-line [ editor-executable " -g " filename ":" line-num ]
+    open-to-column [ editor-executable " -g " filename ":" line-num ":" col-num]
+]    

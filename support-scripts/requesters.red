@@ -1,4 +1,4 @@
-Red [
+ Red [
 	author: ["Gregg Irwin"]
 	notes: {
 		Experimental requesters, for design discussion. Not just about the
@@ -262,23 +262,58 @@ requesters: context [
 	
 	;---------------------------------------------------------------------------
 
-	set 'request-list function [
+	set 'orig-request-list function [
 		"Display a simple list selection dialog with a short message"
 		msg
 		data [block!]
+		/size sz [pair!]
 	][
+	    sz: any [sz 200x150]
 		view/options compose/only [
 			across
-			text font-size 12 200 (form msg) return
-			f-lst: text-list 200x125 data (data) on-dbl-click [res: true  unview]
+			text font-size 12 200 (form msg) return 
+			f-lst: text-list sz data (data) on-dbl-click [res: true  unview]
 			return
-			pad 100x0
+			;pad 100x0
 			button "OK" [res: true  unview]
 			button "Cancel" [res: none  unview]
 			do [set-focus f-lst]
 		] std-dialog-opts
 		if any [std-dialog-actors/res res] [pick f-lst/data f-lst/selected]
 	]
+	
+    set 'request-list function [
+		{Modified By: Mike Yaunish. Supports 'one-click'}
+		msg
+		data [block!]
+		/size sz [pair!]
+		/one-click {Allows one-click selection}
+	][
+	    sz: any [sz 200x150]
+	    picked: 0
+	    either one-click [
+	        actor-name: 'on-select 
+	        ok-status: 'hidden
+	    ][ 
+	        actor-name: 'on-dbl-click 
+	        ok-status: []
+	    ]
+		view view-composed: compose/only/deep [
+			across
+			text font-size 12 200 (form msg) return 
+			f-lst: text-list sz data (data)
+			    ;on-select [res: true picked: event/picked  unview]
+			    on-select [ picked: event/picked ] 
+			    ;on-dbl-click [res: true picked: event/picked  unview] 
+			    (actor-name) [res: true picked: event/picked  unview] 
+			return
+			;pad 100x0
+			button "OK" [res: true  unview] (ok-status)
+			button "Cancel" [res: none  unview]
+			do [ set-focus f-lst ]
+		] std-dialog-opts
+		if any [std-dialog-actors/res res] [pick f-lst/data picked ]
+	]	
 
 	;---------------------------------------------------------------------------
 	
@@ -328,34 +363,119 @@ requesters: context [
 	
 	;---------------------------------------------------------------------------
 
-    set 'request-multiline-text function [ 
+    set 'request-multiline-text function [ ;-- request-multiline-text: 
+        {Written by: Mike Yaunish }
     	msg [string!]
-    	/size win-size [pair!] 
+    	/size area-size [pair!] 
     	/preload prestr [ string!]
+    	/submit submit-code 
+    	/offset offset-value [pair!]
+    	/extra extra-data [block!]
     ][
-    	res: copy ""
-    	win-size: either size [ win-size ] [ 500x300 ]
-    	prestr: copy either preload [
-    	    prestr
+        
+    	--multiline-result: copy ""
+    	area-size: any [ area-size 500x200 ]
+    	options-block: either offset [
+    	    reduce [ to-set-word 'offset offset-value ]
     	][
-    	    ""
+    	    []
     	]
-        view [
+    	prestr: copy any [ prestr "" ]
+        view/options [
             Title "User input required"
+            on-close [ --multiline-result: none ]
     		text1: text font-size 12 msg return 
-            area1: area win-size on-create [ area1/text: copy prestr ]
+            --multiline-area: area area-size font-name "fixedsys" font-size 9 focus on-create [ 
+                    --multiline-area/text: copy prestr 
+                ]
+                on-key [
+                    if event/key = 'F1 [
+                        --multiline-result: --multiline-area/text
+                        unview 
+                    ]
+                    if all [ (event/key = 'F5) submit ] [
+                        --multiline-result: --multiline-area/text
+                        do bind submit-code '--multiline-result
+                    ]
+
+                    if event/key = #"^[" [
+                        --multiline-result: none
+                        unview 
+                    ]
+                ]
     		return 
-            button "     OK     " [ 
-                res: area1/text
+            button "     OK / (F1 key)" [ 
+                    --multiline-result: --multiline-area/text
+                    unview 
+            ]
+            submit-button: button "   Submit Changes / (F5 key) " [
+                --multiline-result: --multiline-area/text
+                do bind submit-code '--multiline-result
+            ]
+            button "   CANCEL / (ESC key)  " [ 
+                --multiline-result: none
                 unview 
             ]
-            button "   CANCEL   " [ 
-                res: none
-                unview 
+            do [
+                --multiline-result: copy ""
+                get-results: does [
+                    return --multiline-area/text
+                ]
+                if not submit [
+                    submit-button/visible?: false
+                ]
             ]
-        ]	
-        return res
+        ] options-block	
+        return --multiline-result
     ]
+        
+    set 'request-date function [/set-date seed-date [date!]][ ;-- request-date:
+        seed-date: any [seed-date now/date ]
+        view [
+            Title "Select a date"
+            on-key [
+                if event/key = #"^[" [
+                    res: none
+                    unview 
+                ]    
+            ]        
+            on-close [ res: none ]
+            calendar1: calendar seed-date
+        	return 
+            button "OK" [ 
+                    res: calendar1/data
+                    unview 
+            ]
+            button "CANCEL" [ 
+                    res: none
+                    unview 
+                ] 
+        ]    
+        return res
+    ]    
+    
+    set 'request-specific-move does [ ;-- request-specific-move
+        comment {Written By: Mike Yaunish}
+        view move-specific1-layout: [
+            Title "Move Object"
+            space 2x2
+            text1: text "Move object to a specific location" 335x24 underline wrap font-size 13
+
+            return
+            t1: text "Direction:" font-size 13
+            ahead-radio: radio "Ahead" left font-size 13 data true
+            space 0x0
+            back-radio: radio "Back" left font-size 13
+            return
+            text1-1: text "Number of positions to move:" right wrap font-size 13
+            pos: field 29x24 240.253.0.0 font-size 13 on-enter [
+                amt: (to-integer face/text) * (pick [1 -1] ahead-radio/data) 
+                res:  amt
+                unview 
+            ]
+        ]
+        return res    
+    ]        
 
 ]
 

@@ -9,71 +9,120 @@ do setup:[
         
     "Direct Manipulation of Objects" 
     ;----------------------------------------------------------------
+{The ultimate aim of 'Direct Code' is to provide a robust 
+"Live Code" manipulation environment that allows code modifications 
+to take place through either of the following techniques:
 
+1.) Regular hand written changes to the source code
+2.) Modification of VID object values (through the VID Object Editor)
 
-{The ultimate aim of 'Direct Code' is to provide a robust code manipulation
-environment that allows code modifications to take place through any of the
-following techniques:
+Both techniques will work at the same time. Currently the VID Object Editor
+has some limitations concerning variable names, named colors and how it
+handles styles. Any of these limitation can be overcome by changing the 
+Red code manually.
 
-1.) Changes in the source code
-2.) Direct manipulation of the visual object
-3.) Modification of object values (through the VID Object Editor)
+To activate the 'VID Object Editor' see the next topic:
+"Using the VID Object Editor"
+}    
 
-All three techniques are linked so that changes in one area are 
-interactively reflected in the others.
-
-To activate the 'VID Object Editor' just select a named object (it must be
+"Using the VID Object Editor"
+;---------------------------
+{To activate the 'VID Object Editor' just select a named object (it must be
 named) as detailed below.
 
-SELECTING AN OBJECT TO ACTIVATE THE 'VID OBJECT EDITOR'
--------------------------------------------------------
-In order to select a named object you can do one of following:
-1.) Middle mouse button click on the object
-2.) Move the mouse over the object and press Control and '~' key 
-    (that is: Control and Tilde key) 
-    
-These unusual key combinations were specifically chosen so that they 
-would not interfere with your programs' normal operations.    
-
-USING THE VID OBJECT EDITOR
----------------------------
-
 The editor is simply a way to change the attributes of a VID object and have
-those changes take place interactively in your code. All fields that are NOT
-grayed out can be modified. To learn how to use the Vid Object Editor select 
-the menu item: 'Help/Quick Start Guide'
+those changes take place instantly and interactively in both the source code
+and in the GUI layout.
 
-Values that require pairs like the size and offset of an object have a unique
-modifier tool. It is an icon picturing four arrows. To have it modify the pair
-value just click down on the icon and drag the mouse. You can also move the
-object a pixel at a time by clicking on the arrows.
+The VID Object Editor can be activated from both the running GUI program and
+from the VID source code as follows:
 
-If you click on the object name the object will be highlighted in the code
-editor (you may have to scroll to see the object if it is off screen)
+1.) From the GUI program
+    1.1) Opening the normal VID Object Editor
+        a) Press the middle mouse button on the GUI object in question
+        b) Press the Control + '~' key when your mouse is over the GUI object 
+           in question
+        
+    1.2) Open the VID Object Editor at the left edge of the window
+        a) Hold down the left control key then press the middle mouse button 
+           on the GUI object in question
+        b) Press the Control + '1' key when your mouse is over the GUI 
+           object in question
 
+2.) From the VID code editor (bottom left side panel)          
+    2.1) Opening the normal VID Object Editor
+        a) Select at least one character of source code within the object in 
+           question, then press the middle mouse button
+        b) Select at least on character of source code within the object in 
+           question, then press the Control + '~' 
+           
+    2.2) Opening the normal VID Object Editor at the left edge of the window
+        a) Select at least one character of source code within the object in 
+           question, then hold down the left Control key and press the 
+           middle mouse  button
+        b) Select at least on character of source code within the object in 
+           question then press the Control + '1' 
 
+Values that require pairs like the size and offset or a single integer value 
+like the font size have a unique modifier tool which are the arrows that 
+display right after the data entry field. Clicking on the arrows will change 
+the value by one value (or pixel). Using the mouse scroll wheel will change 
+the value by larger amounts and by clicking and dragging you can change the 
+values freehand depending on where the mouse is.
+
+There are also two fields that have unusual data entry options. That is the 
+'Text' and 'Offset' fields. To the right of the field you will see an arrow 
+pointing towards an empty box, this is to represent an "Import" action. 
+If you change the 'Text' that a 'field' or 'area' contains by modifying 
+it in the running GUI program itself,you can then press the import button 
+and the source code will be updated to reflect that new value.
+
+You can do the same with the 'offset' field. Make any object 'loose'
+and drag it to where you want it, then press the import button to write it's 
+new location to the source code.
 } 
     "How is code modified?"
 
-{Code modification are triggered when the actual Red object is changed. What
-this does is de-couple the GUI that changes the object from the functions that
-rewrite the Red source code. As long as the specific field in an object is being
-tracked (which is happening whenever the VID Object Editor is open) then those
-changes made to the object will be reflected in the source code. What this means
-is that anyone can make a custom GUI to modify the VID objects and the source
-code will be generated for you automatically. (more on how to use this in the
-future.)
+{Code modification has been completely re-written since the last version of
+Direct Code. (Thanks to transcode). Once the 'modify-source' function has 
+some miles and testing under it's belt, I would imagine that it could be 
+easily reused by others. 
 
-Right now, only a few fields of any Red object can generate changes to the
-source code. In the future this will expand. }
+Any changes made through the VID Object Editor are designed to leave any of 
+your hand written code untouched. 
 
-    "Limitations on modifying code"
+Every field of any Red object can be modified through the VID Object Editor.}
+
+    "Limitations of the VID Object Editor"
     ;-----------------------------------------------------------------
-{If you make changes to complex text strings via the 'Vid Obect Editor' or 
-directly in the object itself (in fields and areas) you may bump up against
-a problem with Direct Code not being able to handle the text that you are
-trying to input. If this happens it is best to make the changes in the 
-'Setup Code' or "Layout Code" source files directly.
+{-Complex string creation is no longer an issue in this version of Direct Code.
+
+-Prettify-source will need to be added. "Prettifying" code is left to the user
+ to do manually.
+
+- A more robust multi-line code editor is needed. It's next on my list.
+
+- The VID Editor doesn't currently handle variables used within the VID code.
+  A system for dealing with this (like a link symbol) needs to be investigated.
+  For the time being these situations can be handled through normal code 
+  editing.
+
+- Named colors are similar to variable and aren't handled satisfactorily 
+  within the VID Editor.
+
+- Static react blocks won't work within Direct Code - they only activate once 
+  the program has been run separately (F9) from Direct Code. This is an 
+  outstanding issue with Red and will work properly once this issue is fixed.
+  
+- To see your React blocks work properly in real time within Direct Code you 
+  can add your React block to the 'on-create' block of the object in question. 
+
+- Integration of other external text editors is possible, but right now only 
+  5 text editors for the Window environment come preconfigured. 
+  They are: UltraEdit, Visual Studio Code, Notepad, Notepad++ and RedEditor. 
+  Others can be easily added via the %external-editor-settings.data file in 
+  the support scripts folder. Right now only UltraEdit, NotePad++ and RedEditor
+  are the only editors that properly locate source code via Direct Code.
 }
     "Running The Interpreter" 
     ;-----------------------------------------------------------------
@@ -83,31 +132,45 @@ trying to input. If this happens it is best to make the changes in the
     The interpreter is run continuously so you can always see the 
     results of your efforts. 
 2.) Pressing the Right Control Key (If 'Live Update' isn't checked)
-3.) Pressing the F5 Key
+3.) Pressing the Control + "S" key
 4.) Clicking on the file name displayed (to the right of 'File:')
 
 These unusual key combinations were specifically chosen so that they 
 would not interfere with your programs' normal operations.
 }
     
-    "Run in separate window" 
+    "Run Separately" 
     ;------------------------------------------------------------------
 {You can launch your Red program in a separate window by selecting 
-the following Menu Item: 'File/Run Separately' or use the F9 key
+the following Menu Item: 'File/Run Separately' or use the F9 key.
+The program is actually run through the command line so that there aren't
+any residual dependencies from the Direct Code program interfering with your
+program.
 
 All Red programs created with Direct Code are stand alone Red programs. If you
 use some of the special functions built into Direct Code you may need to include
 them in your program for stand alone use. (See 'Stand Alone Program' in the help
-topics) Future version will have a way to handle '#include' files elegantly.
+topics) Future version will have a way to handle '#include' files better.
+}
 
+    "Do File Attached"
+    ;-----------------
+{This is an intriguing development that opens up a whole new world of program 
+development via Direct Code. When you run your program like this, (as the 
+"Run User Script" program is) you then have full access to all of the inner 
+workings of Direct Code and of your own program as well. 
 
-    }
+More documentation concerning this will come in the future. But it is enough to 
+say that you can query and change almost any part of a running program via
+another program that is run in this way.
+}
     
     "External Text Editor" 
     ;-----------------------------------------------------------------
 
 {You can configure an external text editor via the Menu Item: 'Settings/External
-Editor'
+Editor'. To get your editor working properly edit the file 
+%/support-script/external-editor-settings.data
 
 The external editor can then be used as the primary code editor. Once you open
 your red program with an external editor (through the menu item: 'File/Open with
@@ -117,27 +180,30 @@ Direct Code environment.
 You can also manually activate Auto Reload of the file through the Menu Item:
 'File/Reload/Reload When Changed ON' or by clicking on the 'File:' label.
 
-When the source file is being actively monitored the color of the 'File:' label
-will turn green.
+When the source file is being actively monitored for changes the color of the 
+'File:' label will turn green. This is only supported on Windows right now.
 
-Then whenever you save the file with your external text editor it will be
+Whenever you save the file with your external text editor it will be
 automatically reloaded and run through the Red interpreter.
 
 When you are using an external editor it is important to remember to save
 the file whenever you make changes before interacting with your program 
 in the Direct Code environment because your file will be over written 
-as soon as any changes are made. 
+as soon as any changes are made in the Direct Code environment.
 
 When modifying your code with an external editor the 'Live Update'
 check box isn't necessary
-    }
+}
     
-    "Assistance with face creation" 
+    "Assistance with object creation" 
     ;-----------------------------------------------------------------
 
-{Through the Menu Item: 'Insert' you can add faces to your program.
-This feature is very rudimentary right now. User customization of this
-feature will be implemented in the future.}
+{By using the 'Insert' Menu Item you can add objects to your program.
+There are two menu options:
+
+1.) VID Object Inserter GUI
+2.) Select the individual object from the 'Insert' menu
+}
 
     "Object Browser" 
 
@@ -157,6 +223,21 @@ RED COMMAND LINE
     their context some values may not be visible by the 
     Red commands that you run here. To re-run a command you
     have already entered just click on the 'RED>>' button.
+    There is a handy "Mk Btn" button just to the right of the
+    command line field. It will "Make a Button" out of the 
+    code that you have entered into the Red Command field. 
+    This is handy for testing, discoverying and experimenting with 
+    code that you need to understand.
+
+RED CODE SNIPPET TESTING AREA
+-----------------------------
+    The 'Red Code Snippet Testing Area' can be opened by selecting
+    the Menu: 'User/Run User Script' item. I have found that this is
+    the most efficient way for me to test and explore smaller segments 
+    of code without making changes to the program that I am building. 
+    Because the 'User Script' is run as "Attached", you can monitor, 
+    change and play with almost every part of the currently running 
+    program.
 
 RED SYSTEM/VIEW/DEBUG? FLAG
 ---------------------------
@@ -171,7 +252,7 @@ SHOW NAMED OBJECTS
     you can see the entire list of objects that are properly
     named and eligible for manipulation.
     
-HELPFUL PRINT FUNCTIONS
+HELPFUL PRINT FUNCTIONS 
 -----------------------    
     Two debugging print functions are supplied by the Direct Code 
     environment. (To use these in your stand alone Red program
@@ -185,14 +266,15 @@ HELPFUL PRINT FUNCTIONS
        Menu Item: 'Debug/View Log File'.
        This logging feature can be turned on and off through the
        Menu Item: 'Debug/Logging/Logging OFF' or 'Debug/Logging/Logging ON'
+       Or by pressing the F8 button.
        
-    2) 'bprint' which prints data to the screen as well as to 
+    2) 'bprint' prints data to the screen as well as to 
         the log file.
 
 RESTART DIRECT CODE
 -------------------
     You can restart the 'Direct Code' program by selecting 
-    the Menu Item: 'File/Restart Direct Code'.
+    the Menu Item: 'File/Restart Direct Code' (or F12).
     This is useful if you run into a error that hangs the
     entire Direct Code environment.
 }
@@ -215,18 +297,43 @@ use the Menu Item: 'Insert/Includes/direct-code-stand-alone'
     multi-page documentation. In this case it would be a 
     multi-program document. With this one command you can create 
     your own 'Hyper Card' type program.
-}    
+}
+"User Scripts"
+{There is now an added 'User Script' Menu added to the main program.
+You can either run or edit your 'User Script' here. There are a few tools
+built into the published 'User Script'. But you are free to change it 
+in any way to meet your needs. 
+Check out the 'Red Code Snippet Testing Area' under the "Debuggin Features"
+Help Topic. Using this simple tool has improved my coding efficiency many fold.
+
+This User Script Menu  will be expanded 
+in the future to handle more user customizable programs.
+}   
     ]
     help-topic-data: collect [ foreach [ x y ] help-data [ keep x ] ]
 ]
 ;Direct Code VID Code source marker - DO NOT MODIFY THIS LINE OR THE NEXT LINE!
 view direct-code-help-layout: [
 title "Direct Code Help"
-h3 "Help Topics" 200x40
+h3 "Help Topics" 225x40
 base 1x40 
 h3 "Topic Details" center return 
 top
-topic-list: text-list font-size 11 200x200 data :help-topic-data "Direct Manipulation of Objects"
+topic-list: text-list font-size 11 230x300 data [
+    "Direct Manipulation of Objects" 
+    "Using the VID Object Editor" 
+    "How is code modified?" 
+    "Limitations of the VID Object Editor" 
+    "Running The Interpreter" 
+    "Run Separately" 
+    "Do File Attached" 
+    "External Text Editor" 
+    "Assistance with object creation" 
+    "Object Browser" 
+    "Debugging Features" 
+    "Stand Alone Program" 
+    "User Scripts"
+] "Direct Manipulation of Objects"
     on-change[ 
         details-area/text: pick help-data (topic-list/selected * 2 )
     ] 

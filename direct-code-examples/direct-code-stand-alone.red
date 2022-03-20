@@ -16,6 +16,8 @@ set 'load-and-run function [
     filename [file!]
     /no-save
 ][ ;-- load-and-run:
+    ; print "load-and-run #start ********************************"  comment "dprint"
+    ; print [ "load-and-run /no-save" mold no-save ]                comment "dprint"
     either (value? 'dc-initialized)  [ ;-- loading into the development environment
         dc-load-direct-code filename
         either no-save [

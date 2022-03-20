@@ -20,5 +20,5 @@ button "" loose return
 text3: text font-size 13  "Quickly, turn it OFF - do you still want to use it?"
 button3: button "Yes" [ load-and-run %s4.red ] 
 button4: button "" [ load-and-run %s9.red ]  return 
-text font-size 13  "Sorry, unable to use a computer that was just on fire."
+text4: text font-size 13  "Sorry, unable to use a computer that was just on fire." 412x22
 ]

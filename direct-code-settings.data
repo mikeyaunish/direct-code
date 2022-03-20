@@ -1,9 +1,10 @@
 
-    filename %help/welcome-to-direct-code.red 
-    setup-size 789x212 
-    vid-size 789x342 
-    output-panel-size 895x648 
+    setup-size 800x200 
+    vid-size 800x232 
+    output-panel-size 987x526 
     live-update? false 
-    red-executable "" 
-    external-editor ""     
-    recent-files []
+    evo-after-insert? true 
+    logging false 
+    reload-on-change? false 
+    dc-voe-selected-tab 1 
+    dc-voe-size "regular"
