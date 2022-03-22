@@ -263,6 +263,8 @@
                     target-object-name~: copy face/text 
                     new-title: rejoin ["VID Object Editor - [" name-field~/text "]"] 
                     set (to-path reduce [(to-word window-name) 'text]) new-title 
+                    dash: copy "-" 
+                    set (to-word rejoin [dash dash "evo-window" dash face/text]) get to-word window-name 
                     refresh-results-gui
                 ]
             ] 

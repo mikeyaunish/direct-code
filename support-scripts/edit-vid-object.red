@@ -1,8 +1,8 @@
 Red [
 	Title: "edit-vid-object.red"
 	Comment: "Extracted from: <root-path>%experiments/edit-vid-object/edit-vid-object.red"
-	Date: 19-Mar-2022
-	Time: 20:41:08
+	Date: 22-Mar-2022
+	Time: 16:07:08
 ]
 
     evo-window-cleanup: function [
