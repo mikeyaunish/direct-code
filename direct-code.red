@@ -57,7 +57,8 @@ dc-ctx: context [
     set 'dc-last-setup-code-error copy []
     set 'dc-last-vid-code-error copy []
     set '--evo-window make object!  [size: 0x0 offset: 0x0] 
-    set 'current-file copy ""   
+    set 'current-file copy ""
+    set 'dc-filename copy ""
     dc-reactor: make reactor! [
         ;current-file: clean-path %default-direct-code.red    
         current-file: clean-path %help/welcome-to-direct-code.red    
