@@ -332,6 +332,9 @@ offset-to-line-num: func [ text the-offset /vid ] [
 ]
 
 get-assert-parts: func [ blk [ block! ] ] [
+	frt-part: []
+	op-part: []
+	sec-part: []
 	ops: [ '= | '== | '<> | '> | '< | '>= | '<= | '=? ] 
 	parse blk [
 		copy frt-part to ops 
