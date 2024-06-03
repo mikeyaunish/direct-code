@@ -3031,7 +3031,7 @@ dc-ctx: context [
                 edit-user-stuff [ edit-user-script]
                 goto-edit-vid-object [ edit-evo ]
                 direct-code-help [
-                    browse https://github.com/mikeyaunish/direct-code/docs/SUMMARY.adoc
+                    browse https://github.com/mikeyaunish/direct-code/blob/master/docs/SUMMARY.adoc
                 ]
                 quick-start-guide [
                     load-and-run rejoin [ root-path %help/quick-start-guide.red ]
