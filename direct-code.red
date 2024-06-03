@@ -2943,7 +2943,7 @@ dc-ctx: context [
             "Edit User Script" edit-user-stuff
         ]
         "Help" [
-            "Direct Code Help"          direct-code-help
+            "Direct Code Online Help"   direct-code-help
             "Quick Start Guide"         quick-start-guide
             "Red Online Search Tool"    red-online-search-tool
             "Create Error Report"       create-error-report
@@ -3031,7 +3031,7 @@ dc-ctx: context [
                 edit-user-stuff [ edit-user-script]
                 goto-edit-vid-object [ edit-evo ]
                 direct-code-help [
-                    do rejoin [ root-path %help/direct-code-help.red ]
+                    browse https://github.com/mikeyaunish/direct-code/docs/SUMMARY.adoc
                 ]
                 quick-start-guide [
                     load-and-run rejoin [ root-path %help/quick-start-guide.red ]
