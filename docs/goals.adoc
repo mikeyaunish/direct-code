@@ -1,0 +1,37 @@
+= Goals, Overview and Mental Model of Direct Code
+:reproducible:
+:numbered:
+:toc:
+
+== Goals
+The main aim of Direct Code is to provide a robust "Live Coding" environment for the Red programming language. This environment is designed to decrease the time and effort needed to create a Red program as well as making it easier to read and understand the resulting program.
+
+== Overview
+The creation and generation of Red code happens by one of the following ways:
+[square]
+* Regular modification of the source code with a text editor of your choice or the code editor supplied within Direct Code
+* Modification of VID Objects via the VID Object Editor and the VID Style Editor
+* Insertion of VID Objects, VID Styles and VID Scenarios (A Direct Code invention)
+
+Any changes made through the various GUI interfaces are reflected instantly in the source code
+and source code changes are also instantly reflected in any open GUI interface once the program  has been interpreted.
+
+== Mental Model
+The design of Direct Code is always trying to keep the cognitive load of the programmer to a bare minimum.
+At the core of the design is simply modifying source code and see the results instantly in the GUI environment. Any other maninpulation of code done by the GUI elements of Direct Code are just automation or streamlining of what would be normally done manually.
+
+
+== Coding Goal
+By making the invisible, visible the contours of the domain space become more obvious.
+
+=== Data as Code / Code as Data
+
+If code is data and data is code, then some portion of building a program can be handled by simple data entry. The act of data entry can and should be made simple. This is partly what Direct Code aims to do.
+
+The obvious positive side effects of programming via data entry,  is accuracy and speed.
+By transparently exposing some portion of programming to simple data entry, we
+(as programmers) reduce our cognitive load, leaving us free to pursue the more
+important challenges of programming. 
+
+Programming *close to the data* allows a consistent manipulation of the data but also avoids the confusion created by black box designs that don't reveal the underlying simplicity of the data. 
+

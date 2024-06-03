@@ -1,0 +1,175 @@
+"text" [
+    input [
+        prompt "Text string" 
+        detail "The text that will display on the object created."
+    ] 
+    action [
+        alter-facet/value 'text input-value
+    ]
+] 
+"name" [
+    input [
+        prompt "Object name" 
+        detail "The name given to the object created."
+    ] 
+    action [
+        alter-facet/value 'name input-value
+    ]
+] 
+"size" [
+    input [
+        prompt "Size" 
+        detail "The size of the object created. Use the pair format HHxWW . IE: 100x50 "
+    ] 
+    action [
+        alter-facet/value 'size to-pair input-value
+    ]
+] 
+"color" [
+    input [
+        prompt "Color" 
+        type "color"
+        detail "Enter the color you wish to use on this object"
+    ] 
+    action [
+        alter-facet/value 'color to-tuple input-value
+    ]
+] 
+"loose" [
+	[
+	    input [
+	        prompt "Loose?" 
+	        type "check"
+	        detail "Loose allows the object to be dragged around."
+	    ]
+		action [
+			if input-value [
+				alter-facet 'loose
+			]
+		]	     
+	]
+] 
+"hidden" [
+    input [
+        prompt "Hidden?" 
+        type "check"
+        detail "If the object is hidden or not."
+    ] 
+    action [
+        if (uppercase input-value) = "Y" [
+            alter-facet 'hidden
+        ]
+    ]
+] 
+"with-sample" [
+    input [
+        prompt "Save name" 
+        detail "Add custom data to the 'with' block."
+    ] 
+    action [
+    	comment {compose the with block!}
+        alter-facet/value 'with compose/deep [save-name: (input-value) ]
+    ]
+] 
+"file" [
+	input [
+		prompt "File Name"
+		type "file"
+		detail "The file name you want to use."
+	]
+	action [
+		alter-facet/value 'file to-file input-value
+		
+	]
+]
+
+"date" [
+	input [
+		prompt "Date"
+		type "date"
+		detail "Enter the date you want to use."
+	]
+	action [
+		alter-facet/value 'date string-to-date input-value
+		
+	]
+]
+"draw-sample" [
+    input [
+        prompt "Circle size" 
+        detail "The size of circle."
+    ] 
+    action [
+        object-size: get to-path reduce [to-word object-name 'size] 
+        object-center: object-size / 2 
+        alter-facet/value 'draw compose/deep [circle (object-center) (to-integer input-value)]
+    ]
+] 
+"right" [
+    input [
+        prompt "Right alignment" 
+        type "check"
+        detail "Check the box to enable right alignment. False will remove the right alignment."
+    ] 
+    action [
+    	if input-value [ 
+			alter-facet/delete 'center
+			alter-facet/delete 'right
+			alter-facet/delete 'left
+    		alter-facet 'right 
+    	]
+    ]
+]
+
+"left" [
+    input [
+        prompt "Left alignment" 
+        type "check"
+        detail "Check the box to enable left alignment. False will remove the left alignment."
+    ] 
+    action [
+    	if input-value [ 
+			alter-facet/delete 'center
+			alter-facet/delete 'right
+			alter-facet/delete 'left
+    		alter-facet 'left 
+    	]
+    ]
+]
+
+"center" [
+    input [
+        prompt "Center alignment" 
+        type "check"
+        detail "Check the box to enable center alignment. False will remove the left alignment."
+    ] 
+    action [
+    	if input-value [ 
+			alter-facet/delete 'center
+			alter-facet/delete 'right
+			alter-facet/delete 'left
+    		alter-facet 'center 
+    	]
+    ]
+]
+
+"font-size" [
+    input [
+        prompt "Font size" 
+        type "integer"
+        detail "Set the size of the font that this object will use."
+    ] 
+    action [
+    	alter-facet/value 'font-size input-value
+    ]
+]
+
+"setup-style-dump" [
+	[
+		action [
+			?? objects
+			?? input-values
+			true
+		]
+	]
+]

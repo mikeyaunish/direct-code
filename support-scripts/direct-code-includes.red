@@ -1,15 +1,15 @@
-Red [ Title: "direct-code-includes.red"]
-#include %delim-extract.red
-#include %direct-code-utilities.red 
-#include %requesters.red
-#include %request-message.red
-#include %get-comments.red
-#include %dc-images.red
+Red [ 
+    Title: "direct-code-includes.red"
+]
 
-#include %get-obj-info.red
-#include %get-src-cdta.red
-#include %src-cdta-to-vid-cdta.red
-#include %edit-vid-object.red
-#include %modify-source.red 
+all-files: read to-file get-current-dir
+remove-each file all-files [  
+	(file = %LICENSE) 				   or 
+	(file = %direct-code-includes.red) or 
+	(file = %voe-layout-template.red)  or
+	(file = %style-template.red)           
+]
+foreach file all-files [
+	#include file
+]
 
-#include %../direct-code-stand-alone.red 

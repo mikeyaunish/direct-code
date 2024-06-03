@@ -1,0 +1,11 @@
+setup-size (800, 145) 
+vid-size (800, 234) 
+output-panel-size (987, 486) 
+live-update? false 
+evo-after-insert? true 
+insert-tool-pinned? false 
+logging false 
+reload-on-change? false 
+dc-voe-selected-tab 1 
+dc-voe-size "regular" 
+dc-insert-tool-tab 1 

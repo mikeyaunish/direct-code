@@ -1,0 +1,30 @@
+= Direct Code Summary of documentation
+
+. link:goals.adoc[Goals, Overview and Mental Model]
+
+. link:running-the-interpreter.adoc[Running the Interpreter and resulting programs]
+
+.  VID Code Editing
+.. link:vid-object-editor.adoc[VID Object Editor]
+.. link:style-object-editor.adoc[Style Object Editor]
+
+.  Manual Source Code Editing
+.. link:setup-code-editor.adoc[Setup Code Editor]
+.. link:vid-code-editor.adoc[VID Code Editor]
+.. link:window-code-editor.adoc[Window and Completion Code Editor]
+
+. VID Object Creation
+.. link:objects.adoc[VID Objects]
+.. link:styles.adoc[VID Styles]
+.. link:scenarios.adoc[VID Scenarios (Groups of Objects)]
+
+. External Text Editor
+.. link:external-editor.adoc[External Editor Setup and Use]
+
+. Development Tools
+.. link:development-tools.adoc[List of Development Tools]
+.. link:setup-style.adoc[Details of the setup-style Code Block]
+.. link:direct-code-internals.adoc[Direct Code Internals]
+
+. Future Development
+.. link:future-develpments.adoc[Obvious Path of Progression]

@@ -1,0 +1,68 @@
+:numbered:
+:toc:
+
+= VID Style
+
+== Abstract
+A VID *Style* is useful if you plan to re-use a format or behaviour of a particular VID object. 
+
+== Creating a VID Style
+Let's say we want to repeatedly use the formatting of a button with a large font.
+First we start by creating a new plain VID object.
+
+Click on the *Insert Tool*
+
+image:images/insert-tool2.png[]
+
+From the *Insert Tool* window, select the *Object* tab and click on *button*
+
+image:images/insert-button.png[]
+
+From the VID Object Editor window select the *font* tab and change the *Font Size* to 24
+image:images/voe-change-font-size.png[]
+
+You should now have a button with a large font.
+
+From the VID Object Editor Window select the menu item *Object / Convert to Style*
+image:images/convert-to-style.png[]
+
+You will be prompted to name your new style
+
+image:images/name-my-big-button.png[]
+
+You now have a style defined in your program, which will now display as one of the *Active Styles* in the *Insert Tool* window.
+
+=== Creating a setup-style code block
+
+To customize how a style gets inserted see: link:setup-style.adoc[ setup-style Code Block]
+
+== Inserting a VID Style
+
+To insert a VID Style into your program click on the *Insert Tool* 
+
+image:images/insert-tool2.png[]
+
+=== Inserting from an Active Style or Style Catalog
+
+You can insert a Style one of two ways:
+
+ - 1.) If there are any existing styles in your Red program then you can select its' name under the  *Active Style* tab
+
+image:images/select-active-style.png[]
+
+If the style you have inserted contains a *setup-style* code block you may see a requester asking you to input some facet information. See link:setup-style.adoc[ `setup-style` Documentation]
+
+- 2.) From the *Insert Tool* select the *Style Catalog* tab, then select *area-root*
+
+image:images/insert-style-catalog.png[]
+
+In this example the *area-root* style will prompt you for a size like this:
+
+image:images/insert-area-root.png[]
+
+A *setup-style* code block is part of the *area-root* which is what creates the requester for the area size (as shown above).
+For more information about the `setup-style` code block see: link:setup-style.adoc[`setup-style` Documentation]
+
+
+
+

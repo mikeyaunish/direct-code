@@ -1,0 +1,10 @@
+= Direct Code Internals
+
+Here are some of the advanced internal functions within Direct Code that you can utilize to help build your program. The best place to experiment with these objects and functions is from the User Script window (F7) or in the Red Console that is opened when Direct Code starts. Just do help on each one to see what they are and how they work.
+
+. *insert-vid-object* function 
+. *alter-facet* function used extensively in a `setup-style code block
+. *setup-code* object that contains the text for the xref:setup-code-editor.adoc[ Setup Code Editor]
+. *vid-code* object that contains the text for the VID Code Editor
+
+Care should be taken when using these features. They are quite powerful and could lead to unintended consequences.

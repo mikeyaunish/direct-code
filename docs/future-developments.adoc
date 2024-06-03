@@ -1,0 +1,30 @@
+:numbered:
+:toc:
+= Obvious Path of Progression
+
+== Scenarios
+* The *Scenario* tab in the Insert Tool probably requires an 'accordian' listing.
+
+* Adding a 'Scenario Builder' to the *Scenario* tab in the Insert Tool. Is possibly another 
+
+* Research into creating Database scenarios needs to happen
+
+== Code Editors
+* Using a real code editor within Direct Code would be a good addition.
+
+== Validators
+* Datatype validators need to be implemented 
+
+== Requesters
+* Good Requesters for: colour, rich-text, pair and others need to be built.
+* A general purpose request-input requester could be made from the *setup-style* requester pattern.
+* request-window-options-and-flags needed for *Edit Window and Code Completion* area.
+
+== Red Storage Framework
+* Longer term project to deal with sub 10,000 record database use cases.
+
+== Direct Code test-bench
+* Build a useable version of the `test-bench` program used for internal Direct Code development.
+
+== Direct Code dev-print
+* Build a useable version of the `dprint` function used for internal Direct Code development.

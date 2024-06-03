@@ -1,9 +1,7 @@
-Direct Code V3.0 
+Direct Code V4.0 
+2-June-2024
 Author: Mike Yaunish
 
 Direct Code has been built on the foundation of livecode-enhanced, which was
-written by Nenad Rakocevic and Didier Cadieu.
+originally written by Nenad Rakocevic and Didier Cadieu.
 
-This project has been inspired by the work and observations of Bret Victor. 
-I hope Direct Code can make the process of programming more playful, experimental and 
-inventive.
