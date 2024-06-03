@@ -7,4 +7,4 @@ A Live Coding environment for the Red programming language that provides:
 4) Full support for Cascading VID Object Styles
 5) Capability to create and edit groups of VID Objects, called `Scenarios`
 
-See: [SUMMARY of Direct Code Documentation](https://github.com/mikeyaunish/direct-code/docs/SUMMARY.adoc) for a complete list of all documentaion.
+See: [SUMMARY of Direct Code Documentation](https://github.com/mikeyaunish/direct-code/blob/master/docs/SUMMARY.adoc) for a complete list of all documentaion.
