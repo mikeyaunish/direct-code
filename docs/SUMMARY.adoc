@@ -27,4 +27,4 @@
 .. link:direct-code-internals.adoc[Direct Code Internals]
 
 . Future Development
-.. link:future-develpments.adoc[Obvious Path of Progression]
+.. link:future-developments.adoc[Obvious Path of Progression]
