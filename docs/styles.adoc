@@ -19,11 +19,13 @@ From the *Insert Tool* window, select the *Object* tab and click on *button*
 image:images/insert-button.png[]
 
 From the VID Object Editor window select the *font* tab and change the *Font Size* to 24
+
 image:images/voe-change-font-size.png[]
 
 You should now have a button with a large font.
 
 From the VID Object Editor Window select the menu item *Object / Convert to Style*
+
 image:images/convert-to-style.png[]
 
 You will be prompted to name your new style
