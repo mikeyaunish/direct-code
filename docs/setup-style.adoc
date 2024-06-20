@@ -3,15 +3,103 @@
 :numbered:
 :toc:
 
-== Abstract
+== Overview
 
-*setup-style* is a block of code that controls how a VID Object Style will be created when the style is inserted into a layout. The primary purpose is to customize facets of a VID Object Style as it is being inserted. 
+*setup-style* is a small DSL that contains blocks of code that controls how a VID Object Style will be created when the style is inserted into a layout. The primary purpose is to customize facets of a VID Object Style as it is being inserted into a layout. It is also used to create xref:scenarios.adoc[Direct Code Scenarios].
+
+== Code Structure
+
+The *setup-style* block is made up of one or more input/action blocks. The setup-style block is contained within the *extra* block of the style. 
+
+[source]
+style text-root: text "sample text" extra [
+   	setup-style: [
+       	[
+           	input [<input body>]
+           	action [<action body>]
+       	]
+   	]
+]
+
+=== Input block keywords
+
+==== prompt
+*Syntax* 
+[source,red]
+prompt <prompt string>
+
+*Description* 
+Sets the prompt string for the data to be collected.
+
+==== detail
+*Syntax* 
+[source,red]
+detail <detail string>
+
+*Description* 
+Sets the detail string that will be displayed when the user rolls over the "info" button that is positioned just to the right of the prompt text. 
+
+==== type
+*Syntax* 
+[source,red]
+type <type-string>
+
+*Description* 
+Sets the kind of input type to be used for the data being gathered.
+
+[cols="1,3", options="header"]
+|===
+|Input Type| 	Purpose
+|<default>		| If no *type* is defined a string! input is used.
+|"check"		| Sets the input field to be a true/false check mark
+|"file"			| Sets the input field assist button to request-file
+|"color"		| Sets the input field assist button to request-color
+|"date"			| Sets the input field assist button to request-date
+|"integer"		| Adds left and right buttons to set field integer value
+|===
+
+=== Action data keywords
+The following action data keywords allow you to grab data from previous input/action blocks within the setup-style block.
+
+==== input-value
+*Syntax* 
+[source,red]
+input-value 
+
+*Description* 
+The `input-value` keyword holds the value of whatever was entered at the input field described above this action block. If the input field was left blank or left unchanged then the entire action is ignored.
+
+==== input-values
+*Syntax*
+[source,red]
+input-values/<input-num>
+
+*Description*
+Holds the input value of data collected from input/action block `<input-num>`.
+
+==== objects/<object-num>/object-name
+*Syntax* 
+[source,red]
+objects/<object-num>/object-name
+
+*Description*
+Holds the name of the object of a given `<object-num>` (if there is one)
+
+==== objects/<object-num>/input-values/<num>
+*Syntax* 
+[source,red]
+objects/<obj-num>/input-values/<input-num>
+
+*Description*
+Holds the data that was collected from the object number `<object-num>` and input-value `input-num`.
+
+
 
 == Manual Creation of a *setup-style* code block
 
 Let's take a simple VID styled text object, like this:
 ----
-style label: text "sample text"
+style text-root: text "sample text"
 ----
 and add a simple *setup-style* block to it
 ----
@@ -74,25 +162,25 @@ image:images/select-text.png[]
 
 
 The Layout code for the *my-text* style should now look like this
-----
-	style my-text: text "text1" extra [
-	    setup-style: [
-	        [
-	            input [
-	                prompt "Object text" 
-	                detail "Text displayed on the object created."
-	            ] 
-	            action [
-	                alter-facet/value 'text input-value
-	            ]
-	        ]
-	    ]
-	]
-	text11: my-text
-----
+[source,red]
+style my-text: text "text1" extra [
+    setup-style: [
+        [
+            input [
+                prompt "Object text" 
+                detail "Text displayed on the object created."
+            ] 
+            action [
+                alter-facet/value 'text input-value
+            ]
+        ]
+    ]
+]
+text11: my-text
 
+=== Testing a setup-style code block
 .You can now test the *setup-style* you just created in one of three ways:
-- 1.) Re-run the *setup-style* on an existing Object
+- 1.) Re-run the *setup-style* on an existing Object by selecting the menu: *Object / Re-run Style Setup* 
 
 image:images/re-run-setup-menu.png[]
 
@@ -108,9 +196,10 @@ Enter the "Object Text" that you want to for your *my-text* style
 image:images/my-text-prompt.png[]
 
 You will now have a *my-text* object inserted into the layout with the text you supplied. The source code will look like this:
-----
+
+[source,red]
 my-text1: my-text "Hello, World"
-----
+
 
 - 3.) Hover your mouse cursor over any object that has a *setup-style* and press the F2 key then you will be prompted for the *setup-style* information.
 
@@ -119,7 +208,7 @@ my-text1: my-text "Hello, World"
 `setup-style` is a block of code that is included in the `extra` block of a style. A simple `setup-style` usually consists of two blocks defined by the keywords `input` and `action`. These blocks define how the `setup-style` will function. Below is a diagram describing what happens when the style `label-inline` is inserted. 
 image:images/setup-style-explained.png[]
 
-== setup-style data keywords
+== setup-style block and data keywords overview
 
 image:images/setup-style-anatomy-1.png[]
 
@@ -132,3 +221,7 @@ The *setup-style* code block will be run, following these priorities:
 
 - 1.) If the Style being inserted is selected from one of the *Active Styles* the setup-style code block will run from the current file (if it exists). If the setup-style code block doesn't exist in the local file but does exist in the sytle catalog then the setup-style code block in the style catalog will be run.
 - 2.) If the Style being inserted is in the Style Catalog, the setup-style code block in the Style Catalog will run (if it exists).
+
+=== When are actions inside of the setup-style code block run?
+
+The *setup-style* code block will run all actions that have a valid *input-value*. By default, if an *input-value* collected from the input block is left blank then the associated action block is *NOT* run. Any actions that don't have an associated input block will always be run.
