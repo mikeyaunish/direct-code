@@ -5,7 +5,7 @@
 
 == Overview
 
-*setup-style* is a small DSL that contains blocks of code that controls how a VID Object Style will be created when the style is inserted into a layout. The primary purpose is to customize facets of a VID Object Style as it is being inserted into a layout. It is also used to create xref:scenarios.adoc[Direct Code Scenarios].
+*setup-style* is a small DSL that contains blocks of code that controls how a VID Object Style will be created when the style is inserted into a layout. The primary purpose is to customize facets of a VID Object Style as it is being inserted into a layout. It is also used to create xref:scenarios.adoc[Direct Code Scenarios]. See https://www.youtube.com/watch?v=Jfdt2EFkL3Q[setup-style block customization Video]
 
 == Code Structure
 
