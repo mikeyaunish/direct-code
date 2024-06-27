@@ -213,7 +213,8 @@ direct-code-requesters: context [
     set 'request-message func [
         message [string!] "Message to display" 
         /size area-size "The size of the text area" 
-        /fixed-font
+        /fixed-font 
+        /no-wait
     ] [
         ret-val: copy "" 
         if not size [area-size: 400x200] 
@@ -223,7 +224,7 @@ direct-code-requesters: context [
             title "User Message..." 
             area (area-size) message font-size 12 (font-info) wrap 
             return 
-            button "OK" 100x24 [
+            button "OK" focus 100x24 [
                 ret-val: true 
                 unview/only rre
             ] 
@@ -232,7 +233,13 @@ direct-code-requesters: context [
                 unview/only rre
             ]
         ] 
-        view rre 
+        view/:no-wait/options rre [
+            actors: make object! [
+                on-key: func [face event] [
+                    if event/key = #"^[" [unview]
+                ]
+            ]
+        ] 
         return ret-val
     ] 
     set 'request-tray-list function [

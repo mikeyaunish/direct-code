@@ -2,7 +2,7 @@ Red [
     Title:   "Direct Code"
     Author:  "Mike Yaunish / Nenad Rakocevic / Didier Cadieu /"
     File:    %direct-code.red
-    Version: 3.0.0
+    Version: 4.0.0
     Needs:   'View
     Requires: 10-Oct-2023/9:48:47-06:00
     Usage:  {
@@ -1793,9 +1793,14 @@ dc-ctx: context [
                 ]
             ]
 
-            ver-text: text right "V" 250x15 
+            ver-text: text right 250x15 
             	on-create [
-	                ver-text/text: rejoin [ "Red build date: " system/build/git/date ]
+	                ver-text/text: either system/build/git [
+	                	rejoin [ "Red build date: " system/build/git/date ]
+	                ][
+	                	rejoin [ "MANUAL! build date: " system/build/date ]
+	                ]
+	                	
             	]
             return
             vid-code: area vid-size
@@ -1819,6 +1824,7 @@ dc-ctx: context [
                     tab-panel-size: to-pair reduce [ (insert-tool-width - 25) (mainwin/size/y - 90 )]
                     list-size: to-pair reduce [ (tab-panel-size/x - 22) (tab-panel-size/y - 46 )]
                     insert-tool/pane: layout/only/tight compose/deep [
+                    ;-- insert-tool/pane: layout/only compose/deep [
                     	space 10x2
                         return
                         text "    Insert Tool" 188.188.188 font-size 11 white
@@ -1943,9 +1949,10 @@ dc-ctx: context [
                         	]
                         return
                         box 5x0
-
+                        space 10x10
                         insert-tool-tab: tab-panel tab-panel-size on-create [ insert-tool-tab/selected: (dc-insert-tool-tab) ] [
                             "Object" [
+                            	origin 10x10
                                 basic-list: text-list (list-size)
                                     data dc-plain-styles
                                     on-change [
@@ -1959,6 +1966,7 @@ dc-ctx: context [
                                     ]
                             ]
                             "Active Styles" [
+                            	origin 10x10
                                 active-list: text-list (list-size)
                                     data []
                                     on-change [
@@ -1972,6 +1980,7 @@ dc-ctx: context [
                                     ]
                             ]
                             "Style Catalog" [
+                            	origin 10x10
                                 below
                                 styled-list: text-list (list-size - 75x0 )
                                     data dc-catalog-styles
@@ -1984,6 +1993,7 @@ dc-ctx: context [
 	                                        insert-styled-object/catalog/:scenario sel
                                     	]
                                     ]
+                                space 10x10
                                 return
                                 button "Edit Style" [
                                     set-insert-tool-tab 3
@@ -1998,6 +2008,7 @@ dc-ctx: context [
                                 ]
                             ]
                             "Scenario"[
+                            	origin 10x10
                                 below
                                 scenario-list: text-list (list-size - 100x0 )
                                     data dc-scenarios
@@ -2009,6 +2020,7 @@ dc-ctx: context [
 	                                        insert-scenario sel
 	                                    ]
                                     ]
+                                space 10x10
                                 return
                                 button "Edit Scenario" [
                                     set-insert-tool-tab 4
@@ -2023,7 +2035,8 @@ dc-ctx: context [
                                 ]
                             ]
                             "Code" [
-                                code-catalog-list: text-list (list-size)
+                            	origin 10x10
+                                code-catalog-list: text-list (list-size - 100x0 )
                                     data dc-code-catalog
                                     on-change [
                                         if sel: pick face/data face/selected [
@@ -2034,6 +2047,11 @@ dc-ctx: context [
 	                                        face/selected: none
                                         ]
                                     ]
+                                space 10x10
+								button 75x34 {Show Code ^/Folder} [
+									set-insert-tool-tab 5
+									show-folder rejoin [ root-path %code-catalog/ ]	
+								]                                    
                             ]
                         ]
                     ]

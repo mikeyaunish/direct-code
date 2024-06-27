@@ -1,14 +1,4 @@
-Red [ 
-    Needs: 'View
-]
-test-function1: function [
-	value 
-][
-	print [ "test-function1" value ] 
-]
-
-test-function2: function [
-	value 
-][
-	print [ "test-function2" value ] 
+Red []
+test-code-function: function [ value ][
+	print [ "This is the test-code-function, value = " mold value ]
 ]

@@ -38,7 +38,7 @@ set 'validate-word function [
                     target
                 ]
             ] 
-            ["The word '" target {' is used in the system context. Please try another word.}]
+            ["The word '" target {' is used in the system context. Please try another word or click 'Cancel' to IGNORE this error.}]
         ] 
         [
             [
@@ -50,7 +50,7 @@ set 'validate-word function [
                     target
                 ]
             ] 
-            ["The word '" target {' is used in the Style Catalog. Please try another word.}]
+            ["The word '" target {' is used in the Style Catalog. Please try another word or click 'Cancel' to IGNORE this error.}]
         ] 
         [
             [
@@ -62,7 +62,7 @@ set 'validate-word function [
                     target
                 ]
             ] 
-            ["The word '" target {' is used in the Scenario Catalog. Please try another word.}]
+            ["The word '" target {' is used in the Scenario Catalog. Please try another word or click 'Cancel' to IGNORE this error.}]
         ] 
         [
             [
@@ -71,7 +71,7 @@ set 'validate-word function [
                     target
                 ]
             ] 
-            ["The word '" target {' is in use as a local style. Please try another name.}]
+            ["The word '" target {' is in use as a local style. Please try another word or click 'Cancel' to IGNORE this error.}]
         ]
     ] 
     return results

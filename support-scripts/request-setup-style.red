@@ -410,7 +410,7 @@ request-setup-style: function [
     requester-results: copy "" 
     requester-offset: to-pair reduce [(splith/size/x - 320) 160] 
     requester-block: reduce [to-set-word 'offset requester-offset] 
-    view/options bind requester 'requester-results requester-block 
+    view/options/flags bind requester 'requester-results requester-block [modal] 
     input-entries: save-input-values/dump "" 0 
     if not requester-results [
         return none

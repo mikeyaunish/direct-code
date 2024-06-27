@@ -51,7 +51,7 @@ edit-vid-object: function [
     object-menu: [
         "Object" [
             "Convert to Style" convert-object-to-style 
-            "Re-run Style Setup" re-run-setup-style 
+            "Re-run 'setup-style'" re-run-setup-style 
             "Highlight Source Code" highlight-source-object 
             "Highlight GUI Object" highlight-gui-object 
             "Copy to Clipboard" copy-object-to-clip 

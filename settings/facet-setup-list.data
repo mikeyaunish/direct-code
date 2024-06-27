@@ -36,18 +36,16 @@
     ]
 ] 
 "loose" [
-	[
-	    input [
-	        prompt "Loose?" 
-	        type "check"
-	        detail "Loose allows the object to be dragged around."
-	    ]
-		action [
-			if input-value [
-				alter-facet 'loose
-			]
-		]	     
-	]
+    input [
+        prompt "Loose?" 
+        type "check"
+        detail "Loose allows the object to be dragged around."
+    ]
+	action [
+		if input-value [
+			alter-facet 'loose
+		]
+	]	     
 ] 
 "hidden" [
     input [
@@ -97,7 +95,7 @@
 "draw-sample" [
     input [
         prompt "Circle size" 
-        detail "The size of circle."
+        detail "The size (integer) of the circle  to draw."
     ] 
     action [
         object-size: get to-path reduce [to-word object-name 'size] 
@@ -105,7 +103,7 @@
         alter-facet/value 'draw compose/deep [circle (object-center) (to-integer input-value)]
     ]
 ] 
-"right" [
+"right-align" [
     input [
         prompt "Right alignment" 
         type "check"
@@ -121,7 +119,7 @@
     ]
 ]
 
-"left" [
+"left-align" [
     input [
         prompt "Left alignment" 
         type "check"
@@ -137,7 +135,7 @@
     ]
 ]
 
-"center" [
+"center-align" [
     input [
         prompt "Center alignment" 
         type "check"
@@ -164,12 +162,22 @@
     ]
 ]
 
-"setup-style-dump" [
-	[
-		action [
-			?? objects
-			?? input-values
-			true
-		]
+"on-click-do-face-text" [
+	input [
+		prompt "Field or Area to Run"
+		detail "Enter name of the field or area that will be run."
+	]
+    action [
+        alter-facet/value 'on-click compose/deep [
+            do (to-path reduce [ to-word input-value 'text ]) 
+        ]
+    ]	        
+]
+
+"dump-setup-style-data" [
+	action [
+		?? objects
+		print-each input-values
+		true
 	]
 ]
