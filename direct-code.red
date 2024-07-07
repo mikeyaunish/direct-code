@@ -708,7 +708,19 @@ dc-ctx: context [
     set 'edit-show-window-code function [
         code
     ][
-        results: request-multiline-text/preload/size "Change any Window options/flags and any other completion code below"  code 900x100
+        results: request-multiline-text/size/preload/custom/modal
+			"Change window setting by clicking on the 'Window Configuration' button or just type changes below." 
+			800x100
+			code
+			[ 											;-- custom block
+				"Window Configuration" [	
+					if req-res: request-view-code --multiline-area/text [
+						? req-res
+						--multiline-area/text: req-res
+					]
+				]
+			]
+		
         if results [
             either error? err: try/all [
                 test-code: load results
@@ -1327,6 +1339,13 @@ dc-ctx: context [
         face [object!]
         event [event!]
     ][
+		if all [
+			(event/key = #"^-") ((event/type = 'key-down))
+		][
+			if find face/extra 'on-tab-away [
+				do bind face/extra/on-tab-away 'face
+			]
+		]
         if all [ ( event/key = 'F12) (event/type = 'key-up) ] [
             restart-direct-code
         ]

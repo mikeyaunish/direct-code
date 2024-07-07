@@ -850,28 +850,6 @@ string-to-block: function [
     post-fix: either ((last res) = #"^/") ["]"] ["^/]"] 
     return rejoin ["[^/" res post-fix]
 ] 
-orig-un-block-string: function [
-    {removes head and tail square brackets (including newlines) from a multi-line string} 
-    val [string!] 
-    /only "Exclude head and tail newlines"
-] [
-    trim/head (trim/tail val) 
-    lines: split val "^/" 
-    if ((first lines) = "[") [remove lines] 
-    if ((last lines) = "]") [remove back tail lines] 
-    results: either only [
-        copy "^/"
-    ] [
-        copy ""
-    ] 
-    foreach l lines [
-        append results rejoin [l newline]
-    ] 
-    if not only [
-        remove back tail results
-    ] 
-    return results
-] 
 un-block-string: function [
     {removes head and tail square brackets (including newlines) from a multi-line string} 
     val [string!] 

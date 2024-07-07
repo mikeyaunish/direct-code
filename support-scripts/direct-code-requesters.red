@@ -36,7 +36,8 @@ direct-code-requesters: context [
         /preload prestr [string!] 
         /submit submit-code 
         /offset offset-value [pair! point2D!] 
-        /extra extra-data [block!]
+        /custom custom-data [block!] "consists of <button-string> + <code-block>" 
+        /modal {Makes the requester modal, disabling all previously opened windows}
     ] [
         --multiline-result: copy "" 
         area-size: any [area-size 500x200] 
@@ -45,11 +46,29 @@ direct-code-requesters: context [
         ] [
             []
         ] 
+        flags-block: either modal [
+            [modal]
+        ] [
+            []
+        ] 
         prestr: copy any [prestr ""] 
-        view/options [
+        custom-button-code: either custom [
+            custom-text: 1 
+            custom-code: 2 
+            bind custom-data/:custom-code '--multiline-area 
+            compose/deep [
+                custom-button: button (custom-data/:custom-text) 
+                on-click [(custom-data/:custom-code)] 
+                return
+            ]
+        ] [
+            []
+        ] 
+        multiline-layout: layout compose [
             Title "User input required" 
             on-close [--multiline-result: none] 
             text1: text font-size 12 msg return 
+            (custom-button-code) 
             --multiline-area: area area-size font-name "fixedsys" font-size 9 focus on-create [
                 --multiline-area/text: copy prestr 
                 face/flags: none
@@ -90,7 +109,8 @@ direct-code-requesters: context [
                     submit-button/visible?: false
                 ]
             ]
-        ] options-block 
+        ] 
+        view/options/flags multiline-layout options-block flags-block 
         return --multiline-result
     ] 
     set 'request-date function [/set-date seed-date [date!]] [
