@@ -20,7 +20,7 @@ verify-type: func [
         color 
         {RRR.GGG.BBB.TTT . Where RRR = (Red Value) , GGG = (Green Value) , BBB = (Blue Value) , TTT = (Tranparent Value). Transparent value is optional.  All values are within the range of: 0 to 255 Example: 200.100.0.128 } 
         size 
-        "<num>x<num>.^/Example: 50x90" 
+        "<width-value>x<height-value>.^/Example: 50x90" 
         file 
         {%/<drive>/<path>/<filename>. Example: %/C/Red/my-script.red}
     ] 

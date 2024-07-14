@@ -66,7 +66,6 @@ modify-facet: function [
             either find dc-actor-list facet-string [
                 to-block reduce [word! facet-string]
             ] [
-                print ["modify-facet ERROR- " facet-string " is not a valid actor"] 
                 return none
             ]
         ] [
@@ -81,8 +80,6 @@ modify-facet: function [
             reduce bind translate/2 'new-value
         ]
     ] 
-    if facet = 'name [
-        arg2: to-valid-set-word arg2
-    ] 
+    if facet = 'name [arg2: to-valid-set-word arg2] 
     modify-source/:delete source-code object-name arg1 arg2 
 ]

@@ -213,7 +213,8 @@ build-setup-requester: function [
         ] 
         on-click [
             if (face/extra/filename: request-file/file system/options/path) [
-                set to-path reduce [to-word face/extra/output-field 'text] to-string face/extra/filename
+                set to-path reduce [to-word face/extra/output-field 'text] mold face/extra/filename 
+                do-actor (get to-word face/extra/output-field) none 'enter
             ]
         ] 
         style button-request-date: button "..." 24x24 
@@ -223,7 +224,8 @@ build-setup-requester: function [
         ] 
         on-click [
             if face/extra/date-value: request-date [
-                set to-path reduce [to-word face/extra/output-field 'text] to-string face/extra/date-value
+                set to-path reduce [to-word face/extra/output-field 'text] to-string face/extra/date-value 
+                do-actor (get to-word face/extra/output-field) none 'enter
             ]
         ] 
         style button-request-color: button "..." 24x24 

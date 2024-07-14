@@ -20,12 +20,12 @@ image-root-style-layout: [
 	                detail "Select the image to display"
 	            ] 
 	            action [
-	                alter-facet/value 'file (to-file input-value)
+	                alter-facet/value 'file to-valid-file input-value
 	            ]
 	        ]
 	    ]
 	]
-	image-root1: image-root
+	image-root1: image-root %/E/red/direct-code/images/refresh-icon.png
 ]
 
 ;Direct Code Show Window source marker - DO NOT MODIFY THIS LINE OR THE NEXT LINE!

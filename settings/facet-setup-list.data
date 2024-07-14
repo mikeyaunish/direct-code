@@ -77,7 +77,7 @@
 		detail "The file name you want to use."
 	]
 	action [
-		alter-facet/value 'file to-file input-value
+		alter-facet/value 'file to-valid-file input-value
 		
 	]
 ]
