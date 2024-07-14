@@ -4,10 +4,12 @@ style lbl: base font-size voe-font-size voe-label-size right 230.230.230 black
 style indent-lbl: base font-size voe-font-size voe-indent-label-size right 230.230.230 black 
 style fld-bracket: text "[" bold voe-fld-bracket-size 255.255.255 center middle font-size voe-font-size 
 style fld: field voe-fld-size font-size voe-font-size 
+extra [on-tab-away-do-enter: true] 
 style label-button: base font-size voe-font-size voe-label-size right 230.230.230 black on-over [] extra [original-color: none] 
 style dropdown-label-button: base font-size voe-font-size voe-drop-down-label-size right 230.230.230 black 
 on-over [] 
 style clr-fld: field voe-clr-field-size font-size voe-font-size 
+extra [on-tab-away-do-enter: true] 
 style clr-swatch: base voe-clr-swatch-size draw [pen gray box 0x0 25x24] 
 style ro-fld: field disabled no-border font-size voe-font-size left 202.202.202 black voe-fld-size 
 style indent-ro-fld: field disabled no-border font-size voe-font-size left 202.202.202 black voe-indent-fld-size 
@@ -153,7 +155,8 @@ extra [
     key-timestamp: none 
     on-create-action: none 
     on-change-immediate: none 
-    last-field-value: none
+    last-field-value: none 
+    on-tab-away-do-enter: true
 ] 
 on-create [
     face/extra/last-change: now/time/precise 
@@ -429,9 +432,12 @@ tab-panel1~: tab-panel [
                 if type-field~/text = "button" [
                     btn-adjust: 1x1
                 ] 
-                modify-source vid-code-test/text target-object-name~ [word! "at"] (
-                    ((to-safe-pair offset-field~/text) + btn-adjust)
-                )
+                if verified-input: verify-type pair! offset-field~/text [
+                    offset-field~/text: verified-input 
+                    modify-source vid-code-test/text target-object-name~ [word! "at"] (
+                        ((to-safe-pair offset-field~/text) + btn-adjust)
+                    )
+                ]
             ] 
             refresh-results-gui
         ] 
@@ -501,7 +507,10 @@ tab-panel1~: tab-panel [
                 do zero-check~ "size" 
                 modify-source/delete vid-code-test/text target-object-name~ [pair!] none
             ] [
-                modify-source vid-code-test/text target-object-name~ [pair!] (to-safe-pair size-field~/text)
+                if verified-input: verify-type pair! size-field~/text [
+                    size-field~/text: verified-input 
+                    modify-source vid-code-test/text target-object-name~ [pair!] (to-safe-pair size-field~/text)
+                ]
             ] 
             refresh-results-gui
         ] 
@@ -546,8 +555,11 @@ tab-panel1~: tab-panel [
         extra [original-color: none] "Color:" [highlight-field-source~ face] 
         color-field~: clr-fld 
         on-enter [
-            modify-source vid-code-test/text target-object-name~ [tuple!] to-tuple face/text 
-            refresh-results-gui 
+            if verified-input: verify-type 'color color-field~/text [
+                color-field~/text: verified-input 
+                modify-source vid-code-test/text target-object-name~ [tuple!] to-safe-tuple color-field~/text 
+                refresh-results-gui 
+            ]
         ] 
         space 0x4 
         color-swatch~: clr-swatch on-up [
@@ -1914,6 +1926,7 @@ tab-panel1~: tab-panel [
                 style lbl: base font-size voe-font-size voe-label-size right 230.230.230 black 
                 style action-lbl: base font-size voe-font-size voe-label-size right 230.230.230 black [highlight-field-source~ face] on-over [] extra [original-color: none] 
                 style action-fld: field no-border voe-action-fld-size font-size voe-font-size 
+                extra [on-tab-away: []] 
                 style fld-bracket: text "[" bold voe-fld-bracket-size 255.255.255 center middle font-size voe-font-size 
                 style dot-btn: button "..." font-size voe-font-size voe-dot-btn-size 
                 style x-btn: button bold gray red font-size voe-font-size voe-dot-btn-size "X" 
@@ -1931,10 +1944,17 @@ tab-panel1~: tab-panel [
             space 0x4 
             fld-bracket "[" 
             (to-set-word rejoin ["-actors-" action-name "-field~:"]) action-fld (mold/only the-code) 
-            [
+            on-enter [
                 modify-source vid-code-test/text target-object-name~ [word! (action-name)] to-block face/text 
                 modify-action-line~ (action-name) to-block face/text 
-                refresh-results-gui
+                refresh-results-gui 
+                set-focus (to-word rejoin ["-actors-" action-name "-field~:"])
+            ] 
+            extra [
+                on-tab-away: [
+                    do-actor face none 'enter 
+                    return 'stop
+                ]
             ] 
             fld-bracket "]" 
             space 0x4 

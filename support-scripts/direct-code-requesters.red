@@ -67,7 +67,7 @@ direct-code-requesters: context [
         multiline-layout: layout compose [
             Title "User input required" 
             on-close [--multiline-result: none] 
-            text1: text font-size 12 msg return 
+            msg-area: text font-size 12 msg return 
             (custom-button-code) 
             --multiline-area: area area-size font-name "fixedsys" font-size 9 focus on-create [
                 --multiline-area/text: copy prestr 

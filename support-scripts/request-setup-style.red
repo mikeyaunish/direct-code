@@ -97,8 +97,8 @@ build-setup-requester: function [
         style integer-fld: field 263x24 
         style label-above: text "Label Text:" font-color 0.0.0 font-size 12 
         style detail: button "?" 20x23 extra [message: ""] on-click [request-message face/extra/message] on-create [face/flags: none] 
-        style fld: field 315x24 on-unfocus [do-actor face none 'enter] 
-        style fld-wide: field 355x24 on-unfocus [do-actor face none 'enter] 
+        style fld: field 315x24 extra [on-tab-away-do-enter: true] 
+        style fld-wide: field 355x24 extra [on-tab-away-do-enter: true] 
         style chk: check 13x24 
         style heading: text font-size 12 bold 
         style info-button: base 17x18 info-icon 
@@ -232,8 +232,9 @@ build-setup-requester: function [
             color-value: ""
         ] 
         on-click [
-            if face/extra/color-value: request-color [
-                set to-path reduce [to-word face/extra/output-field 'text] to-string face/extra/color-value
+            if face/extra/color-value: request-color/size/title 300x300 "Select a Color" [
+                set to-path reduce [to-word face/extra/output-field 'text] to-string face/extra/color-value 
+                do-actor (get to-word face/extra/output-field) none 'enter
             ]
         ]
     ] 
@@ -270,7 +271,10 @@ build-setup-requester: function [
         ] 
         file [
             (to-set-word rejoin ["fld-wide" ss-index]) fld-wide 
-            on-change [
+            on-enter [
+                if verified-input: verify-type file! face/text [
+                    face/text: verified-input
+                ] 
                 save-input-values face/text (saved-input-index)
             ] 
             (to-set-word rejoin ["button" ss-index]) button-request-file 
@@ -280,12 +284,24 @@ build-setup-requester: function [
         ] 
         color [
             (to-set-word rejoin ["fld" ss-index]) fld 
-            on-change [
+            on-enter [
+                if verified-input: verify-type 'color face/text [
+                    face/text: verified-input
+                ] 
                 save-input-values face/text (saved-input-index)
             ] 
             (to-set-word rejoin ["button-request-color" ss-index]) button-request-color 
             with [
                 extra/output-field: (rejoin ["fld" ss-index])
+            ]
+        ] 
+        pair [
+            (to-set-word rejoin ["fld" ss-index]) fld 
+            on-enter [
+                if verified-input: verify-type pair! face/text [
+                    face/text: verified-input
+                ] 
+                save-input-values face/text (saved-input-index)
             ]
         ] 
         date [
@@ -408,9 +424,10 @@ request-setup-style: function [
         requester: build-setup-requester/:from-local/:from-catalog setup-style-data requester-info
     ] 
     requester-results: copy "" 
+    verified-input: copy "" 
     requester-offset: to-pair reduce [(splith/size/x - 320) 160] 
     requester-block: reduce [to-set-word 'offset requester-offset] 
-    view/options/flags bind requester 'requester-results requester-block [modal] 
+    view/options/flags (bind requester 'requester-results) requester-block [modal] 
     input-entries: save-input-values/dump "" 0 
     if not requester-results [
         return none

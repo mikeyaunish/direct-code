@@ -121,25 +121,25 @@ requesters: context [
     ] 
     set 'prompt function [
         {Display a dialog with a short message, and OK/Cancel buttons} 
-        msg 
+        msg "Message to display" 
         /text "Include a text box for a simple, typed response" 
-        /prefill prefill-text "text entry field prefilled value" 
-        /size msg-size [pair!]
+        /prefill prefill-text "Text entry field prefilled value" 
+        /win-title title-text "The title that displays on the requester window"
     ] [
-        message-size: either size [
-            msg-size
-        ] [
-            350x40
-        ] 
-        view/options compose [
-            title "User Input Required" 
+        formatted-msg: chunk-string copy msg 51 
+        line-count: count-newlines formatted-msg 
+        msg-size: to-pair reduce [350 (line-count * 18)] 
+        if not prefill [prefill-text: copy ""] 
+        if not win-title [title-text: copy "User Input Required"] 
+        view/options compose/deep [
+            title (title-text) 
             across 
-            text font-size 12 (message-size) (form msg) 
+            base (msg-size) 240.240.240 top left font-size 10 (form formatted-msg) 
             return 
             (
                 either text [
-                    [
-                        f-fld: field 350 [
+                    compose [
+                        f-fld: field (prefill-text) 350 [
                             res: true 
                             unview
                         ] 
@@ -200,7 +200,7 @@ requesters: context [
         /over ctr [object!] "Center over this face" 
         /offset pos [pair!] "Top-left offset of window"
     ] [
-        sz: any [sz 150x150] 
+        sz: any [sz 250x250] 
         palette: make image! sz 
         draw palette compose [
             pen off 
@@ -210,7 +210,7 @@ requesters: context [
             box 0x0 (sz)
         ] 
         spec: compose [
-            title (any [txt ""]) 
+            title (any [txt "Select a Color"]) 
             image palette all-over on-down [dn?: true] 
             on-up [
                 if dn? [

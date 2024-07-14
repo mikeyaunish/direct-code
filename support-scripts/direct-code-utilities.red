@@ -2,6 +2,45 @@ Red [
 	Title: "direct-code-utilities.red"
 	Comment: "Imported from: <root-path>%experiments/direct-code-utilities/direct-code-utilities.red"
 ]
+count-newlines: function [
+    value
+] [
+    length? split value #"^/"
+] 
+verify-type: func [
+    {Verifies if the value supplied can be considered a valid datatype} 
+    input-type [datatype! word!] "datatype or generic lit-word like: 'color" 
+    value [any-type!]
+] [
+    retry-messages: [
+        tuple 
+        "<num>.<num>.<num>.^/Example: 100.20.50" 
+        pair 
+        "<num>x<num>.^/Example: 50x90" 
+        color 
+        {RRR.GGG.BBB.TTT . Where RRR = (Red Value) , GGG = (Green Value) , BBB = (Blue Value) , TTT = (Tranparent Value). Transparent value is optional.  All values are within the range of: 0 to 255 Example: 200.100.0.128 } 
+        size 
+        "<num>x<num>.^/Example: 50x90" 
+        file 
+        {%/<drive>/<path>/<filename>. Example: %/C/Red/my-script.red}
+    ] 
+    custom-types: [
+        color tuple! 
+        size pair!
+    ] 
+    orig-input-type: input-type 
+    if word? input-type [
+        if not input-type: reduce select custom-types input-type [
+            exit
+        ]
+    ] 
+    msg-block: compose ["ERROR trying to convert " mold target " to a " mold orig-input-type {  Please re-enter your data to match this format: }] 
+    append msg-block select retry-messages to-word to-string orig-input-type 
+    datatype-check: get to-word rejoin [to-string input-type "?"] 
+    results: validate value [
+        if datatype-check to-valid input-type target [target]
+    ] msg-block
+] 
 clear-file: does [
     close-object-editor/all-open 
     setup-code/text: copy "" 

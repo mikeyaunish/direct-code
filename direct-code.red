@@ -1345,7 +1345,11 @@ dc-ctx: context [
 			if find face/extra 'on-tab-away [
 				do bind face/extra/on-tab-away 'face
 			]
+			if find face/extra 'on-tab-away-do-enter [
+				do-actor face none 'enter 
+			]
 		]
+				
         if all [ ( event/key = 'F12) (event/type = 'key-up) ] [
             restart-direct-code
         ]

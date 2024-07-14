@@ -19,6 +19,7 @@
 "size" [
     input [
         prompt "Size" 
+        type "pair"
         detail "The size of the object created. Use the pair format HHxWW . IE: 100x50 "
     ] 
     action [

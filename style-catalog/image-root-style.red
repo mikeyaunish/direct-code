@@ -6,10 +6,11 @@ Red [
 ]
 
 do setup: [
+
 ]
 
 ;Direct Code VID Code source marker - DO NOT MODIFY THIS LINE OR THE NEXT LINE!
-image-root-style-layout: [ 
+image-root-style-layout: [
     style image-root: image extra [
 	    setup-style: [
 	        [
@@ -19,12 +20,12 @@ image-root-style-layout: [
 	                detail "Select the image to display"
 	            ] 
 	            action [
-	            	? input-value
 	                alter-facet/value 'file (to-file input-value)
 	            ]
 	        ]
 	    ]
 	]
+	image-root1: image-root
 ]
 
 ;Direct Code Show Window source marker - DO NOT MODIFY THIS LINE OR THE NEXT LINE!

@@ -17,7 +17,7 @@ set 'validate function [
         if results = false [
             return false
         ] 
-        either req-results: prompt/text/size msg 400x80 [
+        either req-results: prompt/text/win-title msg "Dat Entry Error" [
             results: validate req-results validator retry-message
         ] [
             return false
