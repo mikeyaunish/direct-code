@@ -17,11 +17,10 @@ A Live Coding environment for the Red programming language that provides:
 
   
 
-See: [SUMMARY of Direct Code Documentation](https://github.com/mikeyaunish/direct-code/docs/SUMMARY.adoc) for a complete list of all documentaion.
+See: [SUMMARY of Direct Code Documentation](https://github.com/mikeyaunish/direct-code/blob/master/docs/SUMMARY.adoc) for a complete list of all documentaion.
 
   
 
 # Demonstration Videos
 [Direct Code Version 4 Demo](https://www.youtube.com/watch?v=1DtwYz9eeoU)
-
 [setup-style block customization within Direct Code](https://www.youtube.com/watch?v=Jfdt2EFkL3Q)
