@@ -17,7 +17,7 @@ A Live Coding environment for the Red programming language that provides:
 
   
 
-See: [SUMMARY of Direct Code Documentation](https://github.com/mikeyaunish/direct-code/docs/SUMMARY.adoc) for a complete list of all documentaion.
+See: [SUMMARY of Direct Code Documentation](https://github.com/mikeyaunish/direct-code/blob/master/docs/SUMMARY.adoc) for a complete list of all documentaion.
 
   
 
