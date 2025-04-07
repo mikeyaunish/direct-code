@@ -22,6 +22,8 @@ See: [SUMMARY of Direct Code Documentation](https://github.com/mikeyaunish/direc
   
 
 # Demonstration Videos
+[Direct Code Version 5 - What is New](https://youtu.be/frHJHPdqQko)
 [Direct Code Version 4 Demo](https://www.youtube.com/watch?v=1DtwYz9eeoU)
+
 
 [setup-style block customization within Direct Code](https://www.youtube.com/watch?v=Jfdt2EFkL3Q)
