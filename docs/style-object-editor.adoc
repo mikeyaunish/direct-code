@@ -4,14 +4,14 @@
 
 == Overview
 
-The *Style Object Editor* works exactly as the xref:vid-object-editor.adoc[VID Object Editor] works. Except that it controls facets for all instances of the underlying style. By leaving *Style Object Editor* and the *VID Object Editor* open at the same time you can see where facet values are set. See: xref:vid-object-editor.adoc#styled-facets[VID Object Editor and Styled Facets]
+The *Style Object Editor* works exactly as the xref:vid-object-editor.adoc[VID Object Editor] works. Except that it controls facets for all instances that use the style. By leaving *Style Object Editor* and the *VID Object Editor* open at the same time you can see where facet values are set. See: xref:vid-object-editor.adoc#styled-facets[VID Object Editor and Styled Facets]
 
 == Opening the Style Object Editor
 
 You can open the *Style Object Editor* one of four ways:
 
 . Through the VID Object Editor by clicking on the *Edit Style* button as highlighted below:
-image:images/opening-soe-via-voe.png[]
+image:images/opening-soe-via-voe.png[] 
 
 . Holding the SHIFT key down and pressing the middle mouse button while hovering over a GUI Object
 

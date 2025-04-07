@@ -6,9 +6,10 @@
 == Running the Interpreter
 You can run the Red interpreter in one of 3 ways:
 
-. Via the 'Live Update' check box (in the top left corner) The interpreter is run continuously so you can always see the results of your efforts. 
-. Pressing the Right Control Key runs the interpreter immediately. If the program runs succesfully it is saved as well. If the program generates an error it is NOT saved.
-. Pressing the Control + "S" key (which saves and runs the program)
+. Press the `run` button as shown outlined in red below.
+image:images/top-bar-run-button.png[]
+. Press the Right Control Key runs the interpreter immediately. If the program runs succesfully it is saved as well. If the program generates an error it is NOT SAVED. This is to avoid saving faulty programs.
+. Pressing the Control + "S" key (which saves and runs the program as well)
 
 These unusual key combinations were specifically chosen so that they would not interfere with your programs' normal operations.
 

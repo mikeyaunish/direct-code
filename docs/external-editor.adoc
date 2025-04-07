@@ -1,25 +1,30 @@
 == External Text Editor
 
 You can configure an external text editor via the Menu Item: *Settings / External
-Editor* if it wasn't already configured when you started Direct Code initially. 
+Editor* if it wasn't already configured when you started Direct Code initially. Through this menu item you can also configure multiple editors that you can switch between.
+image:images/external-editor.png[]
 
-Direct Code comes preconfigured to support 4 different external text editors.
+Useful when moving back and forth between your regular editor and the new AI powered editors.
+
+Direct Code comes preconfigured to support 6 different external text editors.
   
-They are: UltraEdit, Notepad, Notepad++ and RedEditor. Visual Studio Code was attempted but doesn't allow command line options, so it doesn't work interactively with Direct Code.
+They are: UltraEdit, Notepad, Notepad++, RedEditor, Visual Studio Code and Cursor.ai
 
 Others text editors can be configured by editing the file:
 /direct-code/settings/external-editor-settings.data 
+Your favorite code editor can then be used as the primary code editor for Direct Code.
 
-The external editor can then be used as the primary code editor. You can open your red source code with the external editor, through the menu item: *File / Open with External Editor*.
+To open your file with the *External Editor* just click either of the areas shown in red below:
+image:images/open-with-external-editor.png[]
+
+You can also use the external editor, through the menu item: *File / Open with External Editor*.
 
 You can also manually activate Auto Reload of the file through the Menu Item:
-*File / Reload / Reload When Changed ON* or by clicking on the 'File:' label as shown below.
-
-image:images/file-label-button.png[]
+*File / Reload / Reload When Changed ON* which is equivalent to clicking on the `File:` label as described above.
 
 When the source file is being actively monitored for changes the color of the 'File:' label will turn green. This is only supported on Windows right now. If you wish to stop monitoring the source file select the menu item: *File / Reload / Reload When Changed OFF*
 
-Whenever you save the file with your external text editor it will be automatically reloaded and run through the Red interpreter.
+Whenever you save the file with your external text editor it will be automatically reloaded and *run* through the Red interpreter.
 
 When you are using an external editor it is important to remember to save the file whenever you make changes before interacting with your program in the Direct Code environment because your file will be over written as soon as any changes are made in the Direct Code environment.
 

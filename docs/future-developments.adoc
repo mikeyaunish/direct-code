@@ -4,21 +4,20 @@
 
 == Scenarios
 * The *Scenario* tab in the Insert Tool probably requires an 'accordian' listing.
+There may be an opportunity to condense all objects,styles and scenarios into one list.
 
-* Adding a 'Scenario Builder' to the *Scenario* tab in the Insert Tool. Is possibly another 
+* Adding a 'Scenario Builder' to the *Scenario* tab in the Insert Tool. 
 
-* Research into creating Database scenarios needs to happen
-
-== Code Editors
-* Using a real code editor within Direct Code would be a good addition.
+* Research into automating layout creation for data / database queries.
 
 == Validators
-* Datatype validators need to be implemented 
+* The work for validators has been started in the setup-style environment.
+Further customization options need to be looked at.
 
 == Requesters
 * Good Requesters for: colour, rich-text, pair and others need to be built.
 * A general purpose request-input requester could be made from the *setup-style* requester pattern.
-* request-window-options-and-flags needed for *Edit Window and Code Completion* area.
+
 
 == Red Storage Framework
 * Longer term project to deal with sub 10,000 record database use cases.

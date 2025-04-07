@@ -1,14 +1,21 @@
 = Inserting VID Objects
 
-To insert a VID Object into your program click on the  *Insert Tool* 
+To insert any VID Object into your program click on the  *Insert Tool* 
 
 image:images/insert-tool2.png[]
-
-Then select which ever object you want in the *Object* tab
+Then select the *Object* tab.
 
 image:images/insert-tool-object-list.png[]
 
-If the *Insert Tool* has not been pinned via the *Pin Tool* button on the *Insert Tool*, then the *Insert Tool* will close 
+Then select the object you want to insert from the list displayed.
+If you want information about the other tabs click on the links here:
+
+- xref:styles.adoc#active_style_tab[Inserting from Active Styles]
+- xref:styles.adoc#style_catalog_tab[Inserting from Style Catalog]
+- xref:scenarios.adoc[Inserting a Scenario]
+
+
+If the *Insert Tool* has not been pinned via the *Pin Tool* button on the *Insert Tool*, then the *Insert Tool* will close as soon as you select an item. If you *Pin* the Insert Tool, it will stay open after you have selected the object you want to insert.
 
 If *Auto Open VID Editor - ON* (See Settings Menu), then the *VID Object Editor* will open up.
 If *Auto Open VID Editor - OFF* then the *VID Object Editor* will NOT open.

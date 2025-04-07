@@ -18,6 +18,10 @@
 .. link:styles.adoc[VID Styles]
 .. link:scenarios.adoc[VID Scenarios (Groups of Objects)]
 
+. VID Object Manipulation
+.. link:object-manipulation.adoc[Object Manipulation and shortcut keys]
+
+
 . External Text Editor
 .. link:external-editor.adoc[External Editor Setup and Use]
 

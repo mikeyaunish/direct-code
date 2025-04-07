@@ -1,6 +1,6 @@
-setup-size (800, 145) 
-vid-size (800, 234) 
-output-panel-size (987, 486) 
+setup-size (793, 53)
+vid-size (793, 310)
+output-panel-size (1094, 516)
 live-update? false 
 evo-after-insert? true 
 insert-tool-pinned? false 

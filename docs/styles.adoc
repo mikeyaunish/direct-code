@@ -44,6 +44,7 @@ To insert a VID Style into your program click on the *Insert Tool*
 
 image:images/insert-tool2.png[]
 
+[#active_style_tab]
 === Inserting from an Active Style or Style Catalog
 
 You can insert a Style one of two ways:
@@ -54,16 +55,17 @@ image:images/select-active-style.png[]
 
 If the style you have inserted contains a *setup-style* code block you may see a requester asking you to input some facet information. See link:setup-style.adoc[ `setup-style` Documentation]
 
-- 2.) From the *Insert Tool* select the *Style Catalog* tab, then select *area-root*
+[#style_catalog_tab]
+- 2.) To Insert a style from the *Style Catalog* select the *Style Catalog* tab.
 
-image:images/insert-style-catalog.png[]
+image:images/insert-style-catalog.png[]  
 
-In this example the *area-root* style will prompt you for a size like this:
+In this example the select the *button-plain* style will prompt you with a requester like this:
 
-image:images/insert-area-root.png[]
+image:images/insert-button-plain.png[]
 
-A *setup-style* code block is part of the *area-root* which is what creates the requester for the area size (as shown above).
-For more information about the `setup-style` code block see: link:setup-style.adoc[`setup-style` Documentation]
+A *setup-style* code block is part of the *button-plain* which is what creates the requester shown above.
+For more information about how `setup-style` code blocks work, see: link:setup-style.adoc[setup-style Documentation]
 
 
 

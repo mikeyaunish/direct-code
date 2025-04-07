@@ -21,16 +21,16 @@ Under the *object* tab select the *text* object
 
 image:images/insert-text-object.png[]
 
-You should now see the VID Object Editor. (If you have *Auto Open VID Editor = ON*, as described in the first step)
+You should now see the VID Object Editor, as shown below. (If you have *Auto Open VID Editor = ON*, as described in the first step)
 
 image:images/vid-object-editor.png[]
 
-You can now see and edit any *facets* of this object that you want. As you modify the *facet* values in the VID Object Editor the code changes accordingly in the "Layout Code" text editor.
+You can now see and edit any *facets* of this object that you want. As you modify the *facet* values in the VID Object Editor the code changes accordingly in the "Layout Code" text editor and the Graphical object changes as well.
 
 == Styled Facets
 [#styled-facets]
 
-In the situation where the VID Object Editor is displaying an object that is an instance of a *styled object*, you will see facets that are labelled green. These facet values are controlled by the underlying style. 
+In the situation where the VID Object Editor is displaying an object that is an instance of a *styled object*, you will see facets that are labelled green. These facet values are controlled by the underlying style.
 
 Here is an example of *text-2* object that has a parent style of *styled-text*.
 Clicking on the *Edit Style* button (icon to the far right of the *Style* field)
@@ -38,32 +38,49 @@ will display the *Style Object Editor* for the style indicated.
 
 image:images/voe-and-soe.png[]
 
-If you decide to over ride the facet value supplied by the *style* the field label for that facet will turn yellow, so that you can easily see if the main object or an underlying style is controlling a given facet.
+If you decide to override the facet value supplied by the *style* the field label for that facet will turn yellow. The yellow color shows that if the object facet is set by the *instance*, the green color shows that the facet value is set by the *style*.)
 
 image:images/voe-and-soe-yellow.png[]
 
+[#selecting_inserting_an_object]
+== Selecting an Object / Set Insertion Point 
 
-== Selecting Code for an Object 
+Selecting an Object is used as a reference point for any Object Insertions, Duplication or Moving. In essence this is used as an *object cursor* or `Insertion Point`.
+
 The first facet in any object is the *Object Name*. You will notice that the *Object Name* field label is also a button. 
 
 image:images/voe-object-name-facet.png[]
 
-When you click on the *Object Name* label the source code for the object is highlighted (selected in Red parlance) in the "Layout Code" editor. 
+When you click on the *Object Name* label (as shown above) the resulting actions are shown in the table below:
+[options="header,footer"]
+|=======================
+|Mouse Action (on label)   |Result
+|Single Click              |If NO Object is selected then this Object will will be set as the `Insertion Point` and it's source code will be highlighted. If an Object is already selected then the that Object will be de-selected
+|Double Click              |Object is set as the `Insertion Point` and the `Insertion Point` is LOCKED-ON. Which means this `Insertion Point` will persist until it is unlocked or cleared. 
+|=======================
 
-image:images/layout-object-highlighted.png[]
+Here is what the VID Code Editor looks like when an object is selected:
 
-If you are using an link:external-editor.adoc[external text editor], likewise the source code for the object will be highlighted in your external text editor.
+image:images/voe-object-selected.png[]
 
-=== Placement of Inserted Objects
-[#insert_location]
+If you are using an link:external-editor.adoc[external text editor], the editor will be positioned at the objects' source code as well.
+
+[#insertionpoint]
+== Insertion Point and placement of objects
 Clicking on the *Object Name* doesn't just locate the VID code in your source but is also used as an *object cursor*. 
 
-Inserting or duplicating any object into the layout, by default, will be added to the very end of the Layout Code. (Yes, technically, this is actually an append). _Insert_ in this context is used in a generic way.
+The *Insertion Point* panel displays where and how objects are inserted.
+
+image:images/insertion-point-panel.png[]
+
+By default (as show above) all new objects `Insert After` the current `Layout code`
+
+Inserting, duplicating or moving any object happens in relation to the *Insertion Point*
 
 
-If any text in the layout code is selected (either manually or via the VID Object Editor) then the new object will be inserted immediately before the selected text (taking into account the boundaries of the selected object)
+If any text in the layout code is selected (either manually throught the code editor or via the VID Object Editor) then that object will become the *Insertion Point* . As long as at least one character within the VID Code Editor is selected then that object is considered *Insert Point*.
 
-If *selected* code is in the *style* section of the program then any object inserted will be placed immediately after the entire style section.   
+If any source code in the *style* section of program is selected then any objects inserted will be placed immediately after the *style* section.   
  
 
 See link:style-object-editor.adoc[Style Object Editor] to find out how the Style Object Editor works.
@@ -72,42 +89,49 @@ See link:style-object-editor.adoc[Style Object Editor] to find out how the Style
 == Opening the VID Object Editor
 
 
-The VID Object Editor can be opened from both the running GUI program and from the VID source code by utilizing one of the following techniques:
+The VID Object Editor can be opened by clicking directly on a GUI object (with the appropriate button) or from the VID source code editor (when you select at least on character)
 
-. From the GUI program (VID Object Editor with normal window placement)
-.. Press the middle mouse button on the GUI object in question
-.. Press the Control + '~' key when your mouse is over the GUI object in question
-        
-. From the GUI program (VID Object Editor placed at the left edge of the screen)
-.. Hold down the left control key then press the middle mouse button on the GUI object in question
-.. Press the Control + '1' key when your mouse is over the GUI object in question
 
-. From the VID Code Editor,  which is the bottom left panel labelled: "Layout code in VID dialect" (VID Object Editor with normal window placement)
-.. Select at least one character of source code within the object in question, then press the middle mouse button
-.. Or select at least on character of source code within the object in question, then press the Control + '~' keys. (Control + Tilde)
-           
-. From the VID Code Editor (VID Object Editor placed at the left edge of the screen)
-.. select at least one character of source code within the object in question, then hold down the left Control key and press the middle mouse  button
-.. Or select at least one character of source code within the object in question then press the Control + '1' keys. 
 
-Values that require pairs like the size and offset or a single integer value 
-like the font size have a unique modifier tool which are the arrows that 
-display right after the data entry field. Clicking on the arrows will change 
-the value by one value (or pixel). Using the mouse scroll wheel will change 
-the value by larger amounts and by clicking and dragging you can change the 
-values freehand depending on where the mouse is.
+[#vid_code_keycodes]
+[options="header,footer"]
+|=======================
+|Key Combination            |Mouse Location           |Result
+|Middle Mouse Button        |GUI Object     |Open VID Object Editor for Object under mouse
+|CTRL + Middle Mouse Button    |GUI Object     |Open VID Object Editor for Object (positioned far left on screen)
+|SHIFT + Middle Mouse Button   |GUI Object     |Open VID Object Editor for the Object STYLE 
+|Alt + Right Mouse Button   |GUI Object     |Open VID Object Editor for Object 
+|CTRL + '1'    |GUI Object     |Open VID Object Editor for selected Object (positioned far left on screen)
+|   |     |
+|CTRL + "~" (tilde)  |VID Code Editor    |Open VID Object Editor for selected Object or Style
+|Middle Mouse Button        |VID Code Editor      |Open VID Object Editor for selected Object or Style
+|CTRL + Middle Mouse Button    |VID Code Editor     |Open VID Object Editor for selected Object (positioned far left on screen)
+|CTRL + '1'    |VID Code Editor     |Open VID Object Editor for selected Object (positioned far left on screen)
+|=======================
 
-There are also two fields that have unusual data entry options. That is the 
-'Text' and 'Offset' fields. To the right of the field you will see an arrow 
-pointing towards an empty box, this is to represent an "Import" action. 
-If you change the 'Text' that a 'field' or 'area' contains by modifying 
-it in the running GUI program itself,you can then press the import button 
-and the source code will be updated to reflect that new value.
+       
 
-You can do the same with the 'offset' field. Make any object 'loose'
+When entered values in VID Object Editor that require pairs like the size and offset or a single integer value 
+like the font size have *spin buttons* that appear to the right of the data entry fields.
+
+
+image:images/vid-object-editor-offset-and-size-hilighted.png[] 
+[options="header,footer"]
+|=======================
+|Spin Button Action   |Result
+|Clicking on a button   |Changes the value by 1 unit
+|Mouse Scroll Wheel     |Changes the value by 5 units
+|Click and Drag Mouse   |Changes the value depending on direction and amount of drag
+|=======================
+
+The *Import* buttons will import the appropriate values from the live running object.
+
+You can type into any object that accepts text input (like field and area), then if you want that text string to become the permanent text value press the *import* button. This needs to be done immediately before the Red Code interpreter is run.
+
+You can do the same with the *offset* facet by making any object 'loose'
 and drag it to where you want it, then press the import button to write it's 
 new location to the source code.
 
 
 == Limitations
-Currently the VID Object Editor and the Style Object Editor do not recognize variable or color names. This limitation can be overcome by changing the code manually through the code editor.
+Currently the VID Object Editor and the Style Object Editor do not recognize variable or color names. This limitation can be overcome by changing the code manually through the code editor. Some facets such as *para* and *font* that are described in a block are not processed by Direct Code. The simpler form of these facets are used for the sake of clarity and simplicity.

@@ -16,7 +16,7 @@
     open-to-column [ editor-executable " -n" line-num " -c" col-num filename]
 ] 
 [
-    identifier "UltraEdit" 
+    identifier "uedit" 
     plain-open [ editor-executable " " filename ]
     open-to-line [ editor-executable " " filename " -l" line-num ]
     open-to-column [ editor-executable " " filename " -l" line-num " -c" col-num ]
@@ -26,6 +26,13 @@
     identifier "Code.exe" 
     comment "VSCode"
     plain-open [ {"} editor-executable {"} " " filename ]
-    open-to-line [ editor-executable " -g " filename ":" line-num ]
-    open-to-column [ editor-executable " -g " filename ":" line-num ":" col-num]
-]    
+    open-to-line [ editor-executable " -r --goto " {"} filename {"} ":" line-num ]
+    open-to-column [ editor-executable " -r --goto " {"} filename {"} ":" line-num ":" col-num]
+    open-with-find [ editor-executable " -r --goto " {"} filename {"} ":" line-num ":" col-num]
+]  
+[
+    identifier "Cursor.exe" 
+    plain-open [ {"} editor-executable {"} " -r " {"} filename {"} ]
+    open-to-line [ editor-executable " -r --goto " {"} filename {"} ":" line-num ]
+    open-to-column [ editor-executable " -r --goto " {"} filename {"} ":" line-num ":" col-num]
+]   

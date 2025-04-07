@@ -1,5 +1,5 @@
-Direct Code V4.0 
-2-June-2024
+Direct Code V5.0 
+6-Apr-2025
 Author: Mike Yaunish
 
 Direct Code has been built on the foundation of livecode-enhanced, which was

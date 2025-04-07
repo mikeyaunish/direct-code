@@ -6,7 +6,7 @@
 == Abstract
 A *scenario* is a group of VID objects. The group of objects usually have an overall action they are trying to accomplish, hence the scenario names start with a verb. 
 
-The invention of a VID *scenario* is a relatively new one in the Direct Code environment and will require ongoing research and development. See: xref:future-developments.adoc#_scenarios[Future Developments]
+The invention of a VID *scenario* is still new to the Direct Code environment and is still going through some research and development. See: xref:future-developments.adoc#_scenarios[Future Developments]
 
 == Inserting a Scenario
 

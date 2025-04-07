@@ -41,7 +41,11 @@ if system/build/date < 10-Oct-2023/15:49:07 [
 
 
 
+set 'root-path copy what-dir
 #include %support-scripts/direct-code-includes.red
+
+
+                                                                                   
 lprint: function [ s /no-newline /force ] [
     if any [
         global-logging
@@ -51,18 +55,33 @@ lprint: function [ s /no-newline /force ] [
         write/append/:lines rejoin [ ( first split-path current-file ) %direct-code.log ] form reduce s
     ]
 ]
-bprint: function [s] [
-    lprint s
+bprint: function [s /force ] [
+    lprint/:force s
     print form reduce s
 ]
 
+load-importable: function [ 									
+	source-file [file!]											
+][																
+	do select (select (load source-file ) 'setup) 'importable	
+]																
 
 
 
 dc-ctx: context [
-    set 'root-path copy what-dir
+    
 	#include rejoin [ root-path %support-scripts/select-text-block.red ]
 	#include rejoin [ root-path %support-scripts/direct-code-utilities.red ]
+    #include rejoin [ root-path %support-scripts/dc-images.red  ]
+	
+	set 'dc-default-selected-object-string "Layout code"
+	
+	set 'dc-default-selected-object-label-string "Insertion Point"  
+	set 'dc-hilight-selected-object-label-string "Insertion Point <LOCKED ON>"  
+	
+	set 'dc-default-selected-object-label-color 198.196.225.0 
+	set 'dc-hilight-selected-object-label-color green 
+	
     set 'dc-alter-facet-object-name
     set 'dc-code-version 0
     set 'dc-voe-layout-template-file rejoin [ root-path %support-scripts/voe-layout-template.red ]
@@ -88,6 +107,7 @@ dc-ctx: context [
     set 'current-file copy ""
     set 'gray-green 157.178.145
     set 'yellow-green 205.194.79
+    set 'dc-locked-on-object copy []
     
     dc-reactor: make reactor! [
         current-file: rejoin [ system/options/path %help/welcome-to-direct-code.red ]
@@ -105,33 +125,18 @@ dc-ctx: context [
     live-update?: ""
     
     insert-tool-pinned?: false
+    set 'dc-live-update? false
     set 'dc-voe-selected-tab 1 ;-- This is global because it needs to be read by VOE
     set 'dc-voe-size "regular"
     set 'dc-insert-tool-tab 1
+    set 'dc-style-catalog-selected 1
+    set 'dc-object-catalog-selected 1
+    set 'dc-scenario-catalog-selected 1
     reload-on-change?: false
     set 'global-logging false
     red-executable: none
     
-    set 'get-catalog-filenames function [ ;-- get-catalog-filenames:
-        /scenario
-    ][
-        post-fix: %-style.red
-        post-len: -10
-        files: either scenario [
-            post-fix: %-scenario.red
-            post-len: -13
-            read dc-scenario-catalog-path
-        ][
-            read dc-style-catalog-path
-        ]
-        collected: collect [
-            foreach file files [
-                if (copy/part tail file post-len) = post-fix [
-                    keep file
-                ]
-            ]
-        ]
-    ]
+
 
     set 'dc-external-editor none
     set 'dc-external-editor-commands [
@@ -167,6 +172,18 @@ dc-ctx: context [
     	vid-code/text: copy new-vid-code
     	run-and-save "back-out-changes"
     ]
+
+	set 'prettify-vid-code function [] [	;-- prettify-vid-code:
+		either pretty-result: valid-prettify-vid vid-code/text [
+			if pretty-result = -1 [ return none ]
+		    close-object-editor/all-open 
+		    vid-code/text: pretty-result 
+		    run-and-save "prettif-vid-code" 
+		    show-insert-tool/refresh			
+		][
+			request-message "Unable to prettify current vid-code. The differences are shown in the console. First entry is the original. Second entry is the mismatch"	
+		]
+	]
 
     set 'dc-undo-redo func [
         /vid
@@ -219,6 +236,7 @@ dc-ctx: context [
     set 'dc-catalog-styles get-catalog-entry-names
     set 'dc-scenarios get-catalog-entry-names/scenario
     set 'dc-code-catalog get-catalog-entry-names/code
+    set 'dc-orig 4x4
     
     set 'is-scenario-file? function [
         filename
@@ -233,6 +251,45 @@ dc-ctx: context [
     set 'vid-code-marker {;Direct Code VID Code source marker - DO NOT MODIFY THIS LINE OR THE NEXT LINE!} ;-- vid-code-marker:
     set 'show-window-code-marker {;Direct Code Show Window source marker - DO NOT MODIFY THIS LINE OR THE NEXT LINE!} ;-- vid-code-marker:
 
+	in-output-panel?: function [ f ]  [
+		fnd-face?: #(false)
+		foreach-face output-panel [ 
+			if f = face [ fnd-face?: #(true) ]
+		]
+		return fnd-face?
+	]	
+
+
+	old-in-output-panel?: function [
+		object
+	][
+		output-panel-found?: #(false)
+		until [
+			either not none? object/parent [
+				if not none? object/parent/data [
+					if (first object/parent/data) = 'dc-output-panel [
+						output-panel-found?: #(true)
+						break
+					]	
+				]
+			][
+				false
+			]
+			? object/parent/text
+			either not none? object/parent/text [
+			 	either object/parent/text = "Direct Code" [ 
+					true 
+				][
+					object: object/parent 
+					false
+				]
+			][
+				false
+			]
+		]
+		return output-panel-found?
+	]
+
     get-list-of-styles: function [] [
     	results: collect [
     		foreach [style-name x ] (get-styles to-block vid-code/text) [
@@ -242,34 +299,40 @@ dc-ctx: context [
     	return results
     ]
 
-    set 'validate-object-name function [   ;-- validate-object-name: 
-        object-name [string!]
-    ][
-        if value? (to-word object-name) [
-            object-exists?: true
-            while [ object-exists? ] [
-                either req-res: prompt/text rejoin ["The word: " mold object-name " is already in use. Please provide a different name."]
-                [
-                    object-exists?: value? (to-word object-name: trim req-res)
-                ][
-                    return false
-                ]
-            ]
-            return object-name
-        ]
-        return object-name
-    ]
-
-    set 'get-list-of-named-objects function [] [ ;-- get-list-of-named-objects:
+	
+    set 'get-list-of-named-objects function [ ;-- get-list-of-named-objects:
+    	{return valid named objects}
+    	/every {return objects without names as well}
+    	/both  {return names as well objects}
+    ] [ 
         res-blk: copy []
         foreach-face output-panel [
             obj-name: get-object-name face
-            if obj-name <> "*unusable-no-name*" [
-                append res-blk obj-name
+            if obj-name = "*unusable-no-name*" [
+            	if all [
+            		face/type = 'panel
+            		face/parent/type = 'tab-panel 
+            	][
+            		obj-name: "valid-not-named"
+            	]
+            ]
+            if obj-name <> "valid-not-named" [
+	            if any [
+	            	obj-name <> "*unusable-no-name*" 
+	            	every
+	            ][
+	           		append res-blk obj-name	
+					if both [
+						append res-blk :face 
+					]
+	                
+	            ]
             ]
         ]
         return res-blk
     ]
+    
+    
     set-red-executable: function [
         /none-set
         /extern red-executable dc-red-executable
@@ -297,20 +360,26 @@ dc-ctx: context [
         /none-set
         /extern dc-external-editor
     ][
-        full-msg: "Where is your External Text Editor?"
+        full-msg: "Please locate your external Text Editor OR pick a Previous Selection"
         either none-set [
              full-msg: copy rejoin ["The current 'External Text Editor' Setting is missing or incomplete ^/" full-msg ]
              refines: copy [ skip-button ]
+             skip-button: true
         ][
-            refines: copy []
+            skip-button: false
         ]
-        if external-ed: do refine-function/args request-a-file refines reduce [
-            any [ (if (dc-external-editor <> 'none) [ dc-external-editor ])  "" ]
-            full-msg
-            "External Text Editor:"
-        ][
+        external-ed: request-a-file/:skip-button/history  
+        	any [ (if (dc-external-editor <> 'none) [ dc-external-editor ])  "" ]
+        	full-msg
+        	"External Text Editor:"
+        	reduce [rejoin [root-path %settings/previous-ext-editors.data] "Previous Selections:"] 
+        	
+        if external-ed = 'skip [ exit ]	
+        
+        if external-ed [
             dc-external-editor: external-ed
             save-settings
+            setup-external-editor
         ]
     ]
     
@@ -361,7 +430,7 @@ dc-ctx: context [
     ][
         either status [
             the-rate: 00:00:00.250
-            the-color: 0.200.0
+            the-color: 1.200.3
             reload-on-change?: true
         ][
             the-rate: 999:00:00
@@ -391,193 +460,9 @@ dc-ctx: context [
             ndx: ndx + 1
             obj-search: rejoin [ obj-prefix obj-midfix ndx ":"]
         ]
-        return rejoin [ obj-prefix obj-midfix ndx ]
+        return rejoin [ obj-prefix obj-midfix ndx ] ;-- obj-prefix
     ]
 
-    set 'insert-vid-object function [ ;-- insert-vid-object:
-    	{Inserts a given object type into the current layout}
-        obj-type [string! word!] {Object type that determines object naming prefix as well}
-        /with-on-click on-click-code [block!]
-        /with-text text-string [string!]
-        /with-offset offset-pos [pair!]
-        /position pos [integer!]
-        /style style-name [string!]
-        /named named-object [string!] {Custom object name prefix}
-        /pre-selected pre-insert-object-selected
-        /catalog
-        /no-setup {exclude running run-setup-style}
-    ][
-
-        before-change-index: vid-code-undoer/action-index
-
-        selected-object: either pre-selected [
-            either pre-insert-object-selected [
-                obj-src-pos: get-object-source-position vid-code/text pre-insert-object-selected
-                find-vid-object/location vid-code/text obj-src-pos
-            ][
-                none
-            ]
-        ][
-            either vid-code/selected = none [
-                none
-            ][
-                find-vid-object/location vid-code/text vid-code/selected
-            ]
-        ]
-
-        if selected-object [
-            if find (get-styles to-block vid-code/text) (to-set-word first selected-object) [
-                style-end-pos: tail-position-of-styles vid-code/text
-                selected-object/2/x: (style-end-pos/y + 2 )
-            ]
-            if not position [
-                position: true
-                pos: selected-object/2/x
-            ]
-            vid-code/selected: none
-        ]
-
-        if obj-type = none [
-            return none
-        ]
-        object-type: either ((copy/part to-string obj-type 4) = "ins-") [ ;-- This is to deal with the menu selection stuff
-            object-type: copy skip to-string obj-type 4
-        ][
-            object-type: copy to-string obj-type
-        ]
-
-
-        obj-template: [
-            base        [ (obj-set-word) (to-word object-type) (obj-name)  font-color 255.255.255]
-            box         [ (obj-set-word) (to-word object-type) (obj-name)]
-            text        [ (obj-set-word) (to-word object-type) (obj-name)]
-            button      [ (obj-set-word) (to-word object-type) (obj-name)]
-            check       [ (obj-set-word) (to-word object-type) (obj-name)]
-            radio       [ (obj-set-word) (to-word object-type) (obj-name)]
-            toggle      [ (obj-set-word) (to-word object-type) (obj-name)]
-            field       [ (obj-set-word) (to-word object-type) (obj-name)]
-            area        [ (obj-set-word) (to-word object-type) (obj-name)]
-            image       [ (obj-set-word) (to-word object-type)           ]
-            text-list   [ (obj-set-word) (to-word object-type)            data ["one" "two" "three" "four"] select 2 ]
-            drop-list   [ (obj-set-word) (to-word object-type)            data ["one" "two" "three" "four"] select 2 ]
-            drop-down   [ (obj-set-word) (to-word object-type)            data ["one" "two" "three" "four"] select 2 ]
-            calendar    [ (obj-set-word) (to-word object-type)           ]
-            progress    [ (obj-set-word) (to-word object-type) 25% ]
-            slider      [ (obj-set-word) (to-word object-type) ]
-            scroller    [ (obj-set-word) (to-word object-type) ]
-            camera      [ (obj-set-word) (to-word object-type)             330x250 on-create [ (to-set-path rejoin [to-string obj-set-word "/selected" ]) 1 ] ]
-            panel       [ (obj-set-word) (to-word object-type) (obj-name)  250.250.250 [ panel-button1: button "panel-button1"] ]
-            tab-panel   [ (obj-set-word) (to-word object-type) (obj-name) [ "Tab-A" [ tab-a-btn1: button "tab-A-btn1"] "Tab-B" [ tab-b-btn1: button "tab-B-btn1" ] ]]
-            ;window     [ (obj-set-word) (to-word object-type) (obj-name)]
-            screen      [ (obj-set-word) (to-word object-type) (obj-name)]
-            group-box   [ (obj-set-word) (to-word object-type) (obj-name)  [ group-box-button1: button "group-box-button1"] ]
-            h1          [ (obj-set-word) (to-word object-type) (obj-name)]
-            h2          [ (obj-set-word) (to-word object-type) (obj-name)]
-            h3          [ (obj-set-word) (to-word object-type) (obj-name)]
-            h4          [ (obj-set-word) (to-word object-type) (obj-name)]
-            h5          [ (obj-set-word) (to-word object-type) (obj-name)]
-            rich-text   [ (obj-set-word) (to-word object-type) "Hello Red World" data [1x17 0.0.255 italic 7x3 255.0.0 bold 24 underline] ]
-            timer       [ (obj-set-word) (to-word object-type) (obj-name) 210.210.210]
-            iso-info            [ (obj-set-word) (to-word object-type) ]
-            iso-question        [ (obj-set-word) (to-word object-type) ]
-            iso-warning         [ (obj-set-word) (to-word object-type) ]
-            iso-action-required [ (obj-set-word) (to-word object-type) ]
-            iso-prohibit        [ (obj-set-word) (to-word object-type) ]
-
-        ]
-        obj-name: either named [
-            find-unused-object-name named-object
-        ][
-            find-unused-object-name object-type
-        ]
-        obj-set-word: to-set-word obj-name
-
-        the-template: copy either style [
-            orig-object-type: object-type
-            object-type: style-name
-            show-insert-tool/refresh
-            [ (obj-set-word) (to-word style-name) ]
-
-        ][
-            copy select obj-template (to-lit-word object-type)
-        ]
-
-        if with-on-click [
-            append/only the-template 'on-click
-            append/only the-template [ (on-click-code) ]
-        ]
-        if with-offset [
-            insert the-template reduce ['at offset-pos ]
-        ]
-
-        if with-text [
-            orig-obj-name: copy obj-name
-            obj-name: copy/part text-string 40
-        ]
-
-
-        either position [
-            prev-newline: char-index?/back vid-code/text pos #"^/"
-            code-to-insert: rejoin [ tab (mold/only compose/deep the-template) newline ]
-            insert-pos: either prev-newline > 0 [
-            	prev-newline
-            ][
-            	pos - 1
-            ]
-            insert (skip vid-code/text insert-pos ) code-to-insert
-        ][
-            either vid-code/selected [
-            ][
-                new-line-amt: either all [ (vid-code/text <> "") ((last vid-code/text) <> #"^/" ) ] [
-                    newline
-                ][
-                    ""
-                ]
-                indent-amt: "^-"
-                append vid-code/text rejoin [ new-line-amt indent-amt ]
-                append vid-code/text mold/only compose/deep the-template
-            ]
-        ]
-
-        if with-text [ obj-name: copy orig-obj-name ]
-        run-and-save "insert-vid-object"
-
-		if no-setup [
-			return to-string obj-set-word
-		]
-        setup-result: either style [
-            run-setup-style/:catalog obj-name  "" ""
-        ][
-            true
-        ]
-		if setup-result = 'no-target-from-source [
-			if req-res: request-yes-no rejoin [ "Error inserting: '" object-type "'. If this style requires a parent style, try inserting the parent style first. ^/Do you want to roll back the changes that have been made?" ] [
-			    back-out-vid-changes before-change-index 
-			    request-message "While attempting to 'insert-vid-object' there was a problem locating the 'setup-style'. Any changes made have been reversed."	
-	            return none				
-			]
-		]
-
-        if setup-result = false [
-            back-out-vid-changes before-change-index
-            request-message "While attempting to 'insert-vid-object' the 'setup-style' did not complete. Any changes made have been reversed."
-            return none
-        ]
-
-        if evo-after-insert? [
-            obj-name: either all-to-logic setup-result [  
-                either setup-result = true [
-                    to-string obj-set-word
-                ][
-                    setup-result
-                ]
-            ][
-                to-string obj-set-word
-            ]
-            edit-vid-object obj-name "vid-code"
-        ]
-
-    ]
 
 	get-function-source: function [
 		filename [file!]
@@ -672,13 +557,13 @@ dc-ctx: context [
         extracted: delim-extract/first series left-delim right-delim
         return un-block-string extracted
     ]
-
+    
     set 'get-dc-code-version function [
         file-data
         /extern show-window-code-marker
     ][
         return either find file-data show-window-code-marker [ 2 ][ 1 ]
-    ]
+    ]    
 
     set 'get-setup-code function [
         file-data [string!]
@@ -686,6 +571,7 @@ dc-ctx: context [
     ][
         extract-from-source file-data rejoin [ "^/do setup:" ] vid-code-marker
     ]
+
 
     set 'get-vid-code function [
         file-data [string!]
@@ -715,7 +601,6 @@ dc-ctx: context [
 			[ 											;-- custom block
 				"Window Configuration" [	
 					if req-res: request-view-code --multiline-area/text [
-						? req-res
 						--multiline-area/text: req-res
 					]
 				]
@@ -929,7 +814,7 @@ dc-ctx: context [
                     'setup-size                     setup-code/size
                     'vid-size                       vid-code/size
                     'output-panel-size              output-panel/size
-                    'live-update?                   live-update?
+                    'dc-live-update?                   dc-live-update?
                     'evo-after-insert?              evo-after-insert?
                     'insert-tool-pinned?            insert-tool-pinned?
                     'red-executable                 red-executable
@@ -940,20 +825,11 @@ dc-ctx: context [
                     'dc-voe-selected-tab            dc-voe-selected-tab
                     'dc-voe-size                    dc-voe-size
                     'dc-insert-tool-tab             dc-insert-tool-tab
+                    'dc-style-catalog-selected      dc-style-catalog-selected
+                    'dc-object-catalog-selected		dc-object-catalog-selected
+                    'dc-scenario-catalog-selected	dc-scenario-catalog-selected
                     'insert-tool-open?              insert-tool-open?
                 ] true 2
-        ]
-    ]
-
-    set 'refresh-open-voes does [ ;-- refresh-open-voes:
-        foreach window active-voe-windows [
-            object-name: copy skip window 13
-            win-obj: (get to-path reduce [to-word window 'extra])
-            object-type: get to-path reduce [ (to-word object-name) 'type ]
-            clear-voe-fields win-obj/target-object-name
-
-            source-to-view-fields/id/refresh object-name  object-type  vid-code/text win-obj/target-object-name
-            do to-path reduce [ to-word (rejoin [ "highlight-styled-fields" win-obj/target-object-name ]) 'refresh ]
         ]
     ]
 
@@ -961,7 +837,9 @@ dc-ctx: context [
         id
         /no-save
         /version version-num
-        /extern active-voe-windows internal-source-change-flag? dc-last-vid-code-error dc-last-vid-code-error dc-code-version
+        /extern active-voe-windows internal-source-change-flag? 
+        		dc-last-vid-code-error dc-last-vid-code-error dc-code-version
+        		dc-locked-on-object
     ][
         ;-- save only happens if the run is successful
 
@@ -999,7 +877,8 @@ dc-ctx: context [
             setup-good?: false
         ][ ;-- setup code ran clean
             dc-last-setup-code-error: copy ""
-            either error? err: try/all [
+            either error? err: try/all
+             [
                 if vid-code/text [
                     output-panel/pane: layout/only load/all vid-code/text
                 ]
@@ -1009,6 +888,8 @@ dc-ctx: context [
                 print "*** VID CODE ERROR **************************************************************"
                 print err
                 print "*********************************************************************************"
+                
+                
                 active-filename/color: yellow
                 vid-code/color: yellow
                 vid-good?: false
@@ -1029,6 +910,7 @@ dc-ctx: context [
                     check-for-file-change/rate: curr-rate
                 ]
                 active-filename/color: white
+                active-filename/extra/message: (to-string dc-reactor/current-file)
             ]
         ]
 
@@ -1067,6 +949,16 @@ dc-ctx: context [
                 after-view-widget/extra/rerun :after-view-widget
             ]
         ]
+       
+		       
+		if all [ 
+			dc-locked-on-object <> [] 
+			not find id "insert-vid-object-style"
+		][
+			obj-name: 1
+			voe-menu-handler/lock dc-locked-on-object/:obj-name "highlight-source-object" dc-locked-on-object
+		]
+		resync-selected-object 
     ]
 
     set 'change-logging function [ /off /on /extern global-logging] [ ;-- change-logging:
@@ -1115,13 +1007,14 @@ dc-ctx: context [
         ]
         save-settings
     ]
-
-    set 'set-insert-tool-tab function [
-        tab-num [integer!]
-        /extern dc-insert-tool-tab
+    
+    set 'set-dc-variable function [
+    	var-name [word!]
+    	val [integer!]
+    	/extern dc-insert-tool-tab dc-style-catalog-selected dc-object-catalog-selected
     ][
-        dc-insert-tool-tab: tab-num
-        save-settings
+		set var-name val 
+		save-settings    	
     ]
 
     set 'set-voe-selected-tab function [
@@ -1141,8 +1034,9 @@ dc-ctx: context [
     ]
 
     setup-external-editor: function [
-        /extern dc-external-editor-commands
+        /extern dc-external-editor-commands dc-external-editor
     ][
+        if dc-external-editor = 'none [ exit ]
         external-editor-template: load rejoin [ root-path %/settings/external-editor-settings.data ]
         foreach ext-editor external-editor-template [
             if fnd: find dc-external-editor ext-editor/identifier [
@@ -1170,16 +1064,20 @@ dc-ctx: context [
         loaded-settings: load direct-code-settings
         dc-reactor/current-file: either all-to-logic loaded-settings/filename [ loaded-settings/filename ][ dc-reactor/current-file ]
         setup-size: either all-to-logic loaded-settings/setup-size [ loaded-settings/setup-size ][ setup-size ]
+        selected-object-offset: to-pair reduce [ 95 ( setup-size/y + 83 )]
         vid-size: either all-to-logic loaded-settings/vid-size [ loaded-settings/vid-size ][ vid-size ]
         dc-voe-selected-tab: either all-to-logic loaded-settings/dc-voe-selected-tab [ loaded-settings/dc-voe-selected-tab ][ 1 ]
         dc-voe-size: either all-to-logic loaded-settings/dc-voe-size [ loaded-settings/dc-voe-size ][ 1 ]
         dc-insert-tool-tab: either all-to-logic loaded-settings/dc-insert-tool-tab [ loaded-settings/dc-insert-tool-tab ][ 1 ]
+        dc-style-catalog-selected: either all-to-logic loaded-settings/dc-style-catalog-selected [ loaded-settings/dc-style-catalog-selected ][ 1 ]
+        dc-object-catalog-selected: either all-to-logic loaded-settings/dc-object-catalog-selected [ loaded-settings/dc-object-catalog-selected ][ 1 ]
+        dc-scenario-catalog-selected: either all-to-logic loaded-settings/dc-scenario-catalog-selected [ loaded-settings/dc-scenario-catalog-selected ][ 1 ]
         output-panel-size: either all-to-logic loaded-settings/output-panel-size [
             loaded-settings/output-panel-size
         ][
                 output-panel-size
         ]
-        live-update?:           (all-to-logic loaded-settings/live-update?)
+        dc-live-update?:        (all-to-logic loaded-settings/dc-live-update?)
         insert-tool-open?:      (all-to-logic loaded-settings/insert-tool-open?)
         evo-after-insert?:      (all-to-logic loaded-settings/evo-after-insert?)
         insert-tool-pinned?:    (all-to-logic loaded-settings/insert-tool-pinned? )
@@ -1190,6 +1088,7 @@ dc-ctx: context [
             set-red-executable/none-set
         ]
         if not all-to-logic dc-external-editor: loaded-settings/external-editor [
+        	;print "setup-external-editor #CALLING set-external-editor/none-set"
             set-external-editor/none-set
         ]
         setup-external-editor
@@ -1212,65 +1111,18 @@ dc-ctx: context [
             "2.) External Editor"
         ]
         loaded-settings: [ ;-- settings are missing so setting bare minimum
-            print "RECENT-FILES FLUSHED"
             recent-files: []
         ]
     ]
 
-    set 'find-vid-object function [ ;-- find-vid-object: 
-        source-code [string!]
-        position [pair! none!]
-        /location {return starting location of the object.}
-        return: [string!]
-    ][
-        
-        if any [ 
-        	position = none 
-        	source-code = ""
-       	][
-            return none
-        ]
-        src-cdta: get-src-cdta source-code
-        needle: position/x ;-- just take single value to avoid over lapping on chunks
-
-        segment-start: 1
-        segment-end: length? src-cdta
-        current-offset: to-integer segment-end / 2
-        haystack: src-cdta/:current-offset/token
-        forever  [
-            if between? needle haystack [
-                break
-            ]
-            either needle > haystack/y [
-                new-offset:  to-integer round ( (segment-end + current-offset ) / 2)
-                haystack: src-cdta/:new-offset/token
-                segment-start: current-offset
-                current-offset: new-offset
-
-            ][
-                new-offset: to-integer ((segment-start + current-offset ) / 2)
-                haystack: src-cdta/:new-offset/token
-                segment-end: current-offset
-                current-offset: new-offset
-            ]
-        ]
-        obj-fnd: src-cdta/:current-offset/object
-        either location [
-            first-entry: find-in-array-at src-cdta 4 obj-fnd
-            first-entry
-            return reduce [ obj-fnd first-entry/token ]
-        ][
-            return obj-fnd
-        ]
-    ]
-
     edit-source-object: function [
+    	{Edit vid code source if it is selected}
         /left-edge
-        {Edit vid code source if it is selected}
     ][
         obj-fnd: none
         either pos: vid-code/selected [
-            obj-fnd: find-vid-object vid-code/text vid-code/selected
+            ;-- obj-fnd: find-vid-object vid-code/text vid-code/selected
+            obj-fnd: vid-obj-info/located-at/just-name vid-code/text "" vid-code/selected  
             if obj-fnd [
                 obj-type: second query-vid-object vid-code/text obj-fnd [word!]
 
@@ -1296,9 +1148,15 @@ dc-ctx: context [
         /left-edge
         /style
     ][
-        object-name: get-object-name face
-        fail-msg: does [ rejoin [ "You were attempting to open a style for the object: '" object-name "', but this object does not use a style." ]]
+        object-name: get-object-name/dupes face
+        ;object-name: get-object-name face
+		if block? object-name [
+			object-name: collect[ foreach obj object-name [ keep to-string obj ]]
+			request-message rejoin [ "There are duplicate object names in this layout. This should be corrected before continuing.^/" (print-each/output/name object-name "The Duplicate Names") ]
+			exit
+		]
     	if style [
+    		fail-msg: does [ rejoin [ "You were attempting to open a style for the object: '" object-name "', but this object does not use a style." ]]
 			either style-name: get-object-style (get-object-source object-name vid-code/text )[
     			object-name: to-string style-name 
     			if stock-style? object-name [
@@ -1320,7 +1178,7 @@ dc-ctx: context [
             edit-vid-object/:style/:left-edge object-name "vid-code" 
         ]
     ]
-
+    
     set 'restart-direct-code does [
         either red-executable = 'none [
             req-res: request-message/size rejoin [ "In order to restart Direct Code the 'Red Executable' needs to be ^/setup in the Settings first.^/^/Do you want to do this now?"] 600x300
@@ -1334,6 +1192,95 @@ dc-ctx: context [
             call/shell rejoin [ to-local-file red-executable " " to-local-file clean-path rejoin [ root-path %direct-code.red ] ]
         ]
     ]
+    
+    set 'all-objects-named? does [ ;-- all-objects-named?:
+    	if find object-list: get-list-of-named-objects/every  "*unusable-no-name*" [
+    		request-message rejoin [ "There are some objects without names. This needs to be fixed before "
+    			 "you can continue. See the console for the object list. Sometimes re-interpretting " 
+    			 "the current file will fix the issue. Select the menu item: 'Object' / "
+    			 "'Manage Named Objects' to determine which objects don't have a name. "
+    			 "If you click on 'View Source' of the object directly before the object "
+    			 "without a name you can identify where the VID Object that is missing a name."
+    		]
+    		pe object-list
+    		return false
+    	]    	
+    	return true
+    ]
+    
+    select-current-face: function [
+    	event [event!]
+    	face 
+    	/extern --over-face	
+    ][
+    	if not all-objects-named? [ 
+    		return none 
+    	]
+        if (--over-face = output-panel)[
+        	vid-objects: get-defined-vid-objects/no-styles  vid-code/text
+        	found-object?: false
+        	reverse/skip vid-objects 2
+        	foreach [ a-face face-type ] vid-objects [
+        		a-face: get a-face
+        		if within? 	event/offset a-face/offset a-face/size [
+					--over-face: a-face
+					found-object?: true
+					break            			
+        		]
+        	]
+        	unless found-object? [
+        		request-message "Sorry, can not find a VID object in this location."
+        		return none
+        	]
+        ]
+        target: --over-face 
+        while [
+			all [ 
+				target <> output-panel
+				target/type <> 'window
+			]
+		][
+			target: get in target 'parent 
+		]
+		
+		either face = vid-code [
+            either find event/flags 'control [
+           		edit-source-object/left-edge	
+            ][
+                edit-source-object
+            ]
+            return none
+		][
+			style: false
+			left-edge: false
+			if find event/flags 'shift [ style: true ]
+	    	if find event/flags 'control [	left-edge: true ]
+			select-object/:style/:left-edge --over-face 
+			return none
+		]
+
+		if target/type = 'window [ 
+			return none 
+		]
+
+    ]
+
+	handle-over-face: func [
+		event 
+		action [string!] { One of these: "move-object"  "highlight-source-object" "insert-return-before" "remove-return-before" }
+		/lock 
+	][
+		object-name: either (in-output-panel? --over-face ) [
+			get-object-name --over-face
+		][
+			offset-to-object-name event/offset 
+		]
+		
+		if object-name [
+			lock-block: either lock [ reduce [ object-name "" ]	][ [] ]
+			voe-menu-handler/:lock object-name action lock-block
+		]
+	]
 
     direct-code-event-handler: func [
         face [object!]
@@ -1349,68 +1296,179 @@ dc-ctx: context [
 				do-actor face none 'enter 
 			]
 		]
+
 				
-        if all [ ( event/key = 'F12) (event/type = 'key-up) ] [
+        if all [ 
+        	( event/key = 'F12) 
+        	(event/type = 'key-up) 
+        ][
             restart-direct-code
         ]
+        
         if all [ (event/type = 'over) (event/flags/1 <> 'away) ] [
             --over-face: face
         ]
-        if any [ (event/type = 'up) ] [
+        
+        if event/type = 'up [
             if  (--over-face <> face)[
                 --over-face: false
             ]
         ]
 
-        if any [
-            all [(event/key = #"`") (event/type = 'key-down) ((first event/flags) = 'control ) ] ;-- Control + Tilde
-        ][
-            if (--over-face/parent = output-panel) [
+		
+        if all [		;-- Control + Tilde
+        	(event/key = #"`") 
+        	(event/type = 'key-down) 
+        	((first event/flags) = 'control ) 
+       	][
+            
+            if ( in-output-panel? --over-face) [
 				if find event/flags 'shift [	;-- mid-click style edit STYLE
             		select-object/style --over-face
             		return none
             	]            	
                 select-object --over-face
             ]
+
             if face = vid-code [
                 edit-source-object
             ]
         ]
+
+		if all [
+			(event/key = 'F1)
+			(event/type = 'key-up)
+		][
+			if object-name:	either (in-output-panel? --over-face ) [
+				get-object-name --over-face
+			][
+				offset-to-object-name event/offset 
+			][
+				browse https://github.com/mikeyaunish/direct-code/blob/master/docs/SUMMARY.adoc	
+			]			
+		]        
 		
 		if all [
 			(event/key = 'F2)
 			(event/type = 'key-up)
 		][
-			if (--over-face/parent = output-panel) [
-				object-name: get-object-name --over-face
-				re-run-setup-style/manual object-name "" ""
-			]
+			handle-over-face event "move-object"
 		]
+
+		if all [
+			(event/key = #"8")
+			(event/type = 'key-up)
+			((first event/flags) = 'control )		
+			((second event/flags) = 'shift )
+					
+		][
+			handle-over-face event "duplicate-object"
+		]		
+			
+					
+		
+		if all [						
+			(event/key = 'F3)			
+			(event/type = 'key-up)		
+		][								                                       				
+			handle-over-face event "highlight-source-object"
+		] 
+        
+        if all [ 
+        	event/key = 'F4  
+        	event/type = 'key-up 
+        ][
+			handle-over-face/lock event "highlight-source-object"
+
+        ]		                              
+
+		if all [						
+			(event/key = 'left )			
+			((first event/flags) = 'control )		
+			((second event/flags) = 'shift )
+			(event/type = 'key-up)		
+		][	
+			handle-over-face event "move-back-1"
+		]		
+
+		if all [						
+			(event/key = 'right )			
+			((first event/flags) = 'control )		
+			((second event/flags) = 'shift )
+			(event/type = 'key-up)		
+		][	
+			handle-over-face event "move-forward-1"
+		]		
+
+		if all [						
+			(event/key = 'up )			
+			((first event/flags) = 'control )		
+			((second event/flags) = 'shift )
+			(event/type = 'key-up)		
+		][	
+			handle-over-face event "move-to-beginning"
+		]		
+
+		if all [						
+			(event/key = 'down )			
+			((first event/flags) = 'control )		
+			((second event/flags) = 'shift )
+			(event/type = 'key-up)		
+		][	
+			handle-over-face event "move-to-end"
+		]		
+
+		
+		if all [						
+			(event/key = #"^M")			
+			((first event/flags) = 'control )		
+			((second event/flags) = 'shift )
+			(event/type = 'key-up)		
+		][	
+			handle-over-face event "insert-return-before"
+		]							                                       				
+
+		if all [						
+			(event/key = #"^H")			
+			((first event/flags) = 'control )		
+			((second event/flags) = 'shift )
+			(event/type = 'key-up)				
+		][	
+			handle-over-face event "remove-return-before"
+		]		
+
+		if all [						
+			(event/key = #"-" )			
+			((first event/flags) = 'control )		
+			((second event/flags) = 'shift )
+			(event/type = 'key-up)			
+		][	
+			handle-over-face event "delete-object"
+		]		
+
+        if all [		;-- Escape key
+        	(event/key = #"^[") 
+        	(event/type = 'key-up) 
+       	][
+			un-highlight-source-object/quiet "" "" ""
+			clear-vid-code-selected
+		]
+		
+		if all [ 
+			(event/type = 'alt-up) 
+			(find event/flags 'alt)
+		][
+			select-current-face event face 
+		]
+				
         if any [
             (event/type = 'mid-down)
             all [(event/key = #"1") (event/type = 'key-down) ((first event/flags) = 'control ) ] ;-- Control + "1"
         ][
-            if (--over-face/parent = output-panel) [
-            	if find event/flags 'control [	;-- mid-click left-edge
-            		select-object/left-edge --over-face
-            		return none
-            	]
-				if find event/flags 'shift [	;-- mid-click style edit STYLE
-            		select-object/style --over-face
-            		return none
-            	]            	
-                select-object --over-face	;-- Normal mid-click selection
-                return none
-            ]
-            if face = vid-code [
-                either find event/flags 'control [
-               		edit-source-object/left-edge	
-                ][
-                    edit-source-object
-                ]
-                return none
-            ]
+        	
+			select-current-face event face
         ]
+        
         if event/key = #"^S"[
             either event/flags = [control shift] [
                 save-dc
@@ -1418,9 +1476,17 @@ dc-ctx: context [
                 run-and-save "control-S"
             ]
         ]
+        
+        if event/key = #"^O"[
+            if event/flags = [control] [
+                open-dc
+            ]
+        ]        
+
         if all [ ((first event/flags) = 'alt ) (event/key = 'left ) (event/type = 'key-up ) ][
             load-and-run recent-menu/get-item 1
         ]
+
         if event/key = #"^Z"[
             if event/flags = [control shift] [
                 either (--over-face = setup-code) [
@@ -1443,12 +1509,12 @@ dc-ctx: context [
 
         if all [
             (event/type = 'key-up)
-            any [ (event/key = 'right-control) ]
+            (event/key = 'right-control)
         ][
             run-and-save "control-key-change"
         ]
         if all [ event/key = 'F11 (event/type = 'key-up) ] [
-            system/view/debug?: xor~ system/view/debug? true
+        		system/view/debug?: xor~ system/view/debug? true	
         ]
         if all [ event/key = 'F7 (event/type = 'key-up) ] [
             run-user-script
@@ -1464,6 +1530,8 @@ dc-ctx: context [
         if all [ event/key = 'F6  event/type = 'key-up ][
             do-current-file
         ]
+
+        
         if event/type = 'resize [
             --dc-mainwin-edge: mainwin/offset + mainwin/size
         ]
@@ -1481,16 +1549,16 @@ dc-ctx: context [
 
         if event/type = 'resize [
             insert-tool-height: 4
-            sz: mainwin/size - orig
-            pan/size/y:  sz/y - (to-integer pan/offset/y)
-            vid-code/size/y: (to-integer pan/size/y)  - (to-integer vid-code/offset/y) - orig/y - insert-tool-height
+            sz: mainwin/size - dc-orig
+            pan/size/y:  (to-integer sz/y) - (to-integer pan/offset/y)
+            vid-code/size/y: (to-integer pan/size/y)  - (to-integer vid-code/offset/y) - dc-orig/y - insert-tool-height
             output-panel/size: sz - output-panel/offset
             splitv/size/y: (to-integer sz/y) - (to-integer splitv/offset/y)
             insert-tool-tab/size/y: to-integer mainwin/size/y - 89
             insert-tool/size/y: to-integer mainwin/size/y - 45
             basic-list/size/y: to-integer mainwin/size/y - 136
             active-list/size/y: to-integer mainwin/size/y - 136
-            styled-list/size/y: to-integer mainwin/size/y - 136
+            styles-vid-list/size/y: to-integer mainwin/size/y - 136
             'done
         ]
         return none
@@ -1501,7 +1569,9 @@ dc-ctx: context [
     ][
         insert-event-func 'direct-code-event-handler :direct-code-event-handler ;--10-OCT-2023
     ]
+    
     on-spliter-init: func [face [object!] /local data v sz? op axis] [
+    	face/extra/offset: face/offset 
         face/extra/fixedaxis: select [x y x] face/extra/axis: axis: either face/size/x < face/size/y ['x] ['y]
         if not block? data: face/data [exit]
         forall data [
@@ -1526,15 +1596,13 @@ dc-ctx: context [
             do zz: reduce [load rejoin [form prop ":"] prop op amount]          ;-- update the value with the new amount. I miss 'to-set-word here
         ]
     ]
-    orig: 4x4
+  
     red-object-browser: does [ do rejoin [ root-path  %tools/red-object-browser.red ] ]
 
     mainwin: layout [
-    	
         title "Direct Code"
         backdrop gray
-        origin orig
-		
+        origin dc-orig
         space 0x0
         style area: area font-name "Fixedsys"
         style split-style: base 30x6 loose 
@@ -1568,6 +1636,160 @@ dc-ctx: context [
         	    code-to-run: []
         	    rerun: copy []
         	]
+		style dc-button-with-image-face: button  
+			extra [
+				normal-image: ""
+				hilight-image: ""
+			]
+			on-created [
+				if not none? face/image [
+					face/extra/normal-image: face/image
+					face/extra/hilight-image: get-hilight-image face/image
+				]
+			]
+		    on-over [ 
+				face/image: either event/away? [ 
+					face/extra/normal-image
+				][ 
+					face/extra/hilight-image 
+				]
+			] 
+
+					style dc-button-with-image-and-tooltip: button 
+						extra [
+							normal-image: "" 
+							hilight-image: "" 
+						    now-over?: #(false)
+						    over-offset: 0x0 
+						    message: {Add with [ extra/message: "a message" ] to display your own message} 
+						    boxed: #(false)	
+						    close-pop: func [] [
+								if face/extra/now-over? [
+									face/rate: 99:99:99
+									face/extra/now-over?: #(false)
+									popup-help/close ""
+								]						    	
+						    ]						
+						] 
+						on-created [
+							if not none? face/image [
+								face/extra/normal-image: face/image 
+								face/extra/hilight-image: get-hilight-image face/image
+							]
+						]
+						on-create [ face/extra/now-over?: #(false) ]
+						on-over [
+							either event/away? [
+								face/image: face/extra/normal-image 
+								face/rate: 99:99:99	
+								if face/extra/now-over? [
+						    		face/extra/now-over?: #(false)
+						    		popup-help/close ""
+						    	]				            								
+							] [
+								face/image: face/extra/hilight-image 
+						        if not face/extra/now-over?  [
+									face/rate: 00:00:00.55
+									face/extra/over-offset: event/offset 				                
+								]
+							]
+						]
+						on-time [
+							face/extra/now-over?: #(true)
+							face/rate: 99:99:99
+							box: face/extra/boxed 
+							popup-help/offset/:box face/extra/message ((get-absolute-offset face) + face/extra/over-offset + -12x14) 
+						]
+			
+			style dc-button-with-tooltip: button
+				rate 99:99:99 
+		        extra [ 
+		            now-over?: #(false)
+		            over-offset: 0x0 
+		            message: {Add with [ extra/message: "a message" ] to display your own message} 
+		            boxed: #(false)
+		        ]
+		        on-create [ face/extra/now-over?: #(false)]
+		        on-over [
+		            either event/away? [
+		            	face/rate: 99:99:99	
+			        	if face/extra/now-over? [
+			        		face/extra/now-over?: #(false)
+			        		popup-help/close ""
+			        	]				            
+			        ][
+		                if not face/extra/now-over?  [
+							face/rate: 00:00:00.55
+							face/extra/over-offset: event/offset 				                ]
+		            ]
+		        ]
+		        on-time [
+		        	face/rate: 99:99:99
+		        	face/extra/now-over?: #(true)
+		        	box: face/extra/boxed 
+		        	popup-help/offset/:box face/extra/message ((get-absolute-offset face) + face/extra/over-offset + -12x14) 
+		        ]
+
+			style dc-text-with-tooltip: text
+				rate 99:99:99 
+		        extra [ 
+		            now-over?: #(false)
+		            over-offset: 0x0 
+		            message: {} 
+		            boxed: #(false)
+		        ]
+		        on-create [ face/extra/now-over?: #(false)]
+		        on-over [
+		            either event/away? [
+		            	face/rate: 99:99:99	
+			        	if face/extra/now-over? [
+			        		face/extra/now-over?: #(false)
+			        		popup-help/close ""
+			        	]				            
+			        ][
+		                if not face/extra/now-over?  [
+							face/rate: 00:00:00.55
+							face/extra/over-offset: event/offset 				                ]
+		            ]
+		        ]
+		        on-time [
+		        	face/rate: 99:99:99
+		        	face/extra/now-over?: #(true)
+		        	box: face/extra/boxed 
+		        	popup-help/offset/:box face/extra/message ((get-absolute-offset face) + face/extra/over-offset + -12x14) 
+		        ]
+
+			style button-with-toggle-image: button 
+				extra [
+					first-image: "" 
+					second-image: "" 
+					current-image: "" 
+					showing-image: 1 
+				]			
+				on-created [
+					face/extra/current-image: face/image: reduce (pick [face/extra/first-image face/extra/second-image] face/extra/showing-image)
+					face/image: face/extra/current-image
+				] 
+				on-over [
+					face/image: either event/away? [
+						face/extra/current-image
+					] [
+						get-hilight-image face/extra/current-image
+					]
+				] 
+ 
+				on-click [
+					face/image: either (face/extra/showing-image = 2) [
+						face/extra/showing-image: 1 
+						face/extra/current-image: face/extra/first-image 
+						face/extra/first-image
+					] [
+						face/extra/showing-image: 2 
+						face/extra/current-image: face/extra/second-image 
+						face/extra/second-image
+					]
+				]
+			       
 
         dc-after-view: after-view with [
             extra/code-to-run: [
@@ -1586,36 +1808,30 @@ dc-ctx: context [
                     if insert-tool-open? [
                         do-actor insert-tool-button none 'down
                     ]
+		    		system/console/run/no-banner 
                 ]
             ]
         ]
 
         pan: panel [
             below
-            origin orig
+            origin dc-orig
             space 10x2
             across
-            update-check: check "Live Update " font-size 12 data live-update? [
-                live-update?: update-check/data
-                save-direct-code dc-reactor/current-file
-            ]
+         
             space 0x4
-            back-btn: button "<" 15x24 [
-                load-and-run recent-menu/get-item 1
-            ] extra [
-                first-over?: true
-            ] on-over [
-        	    either event/away? [
-        	        back-btn/extra/first-over?: 'true
-        	        popup-help/close ""
-        	    ][
-        	        if back-btn/extra/first-over? = 'true [
-          	            back-btn/extra/first-over?: 'false
-          	            popup-help/offset {load-and-run previous file} (face/parent/parent/offset + face/offset + event/offset + 20x0  )
-          	        ]
-        	    ]
-            ]
-
+            back-btn: dc-button-with-tooltip "<" 15x24 
+            	with [ extra/message: "Load and run previous file"]
+	            on-click [
+					face/rate: 100:40:39
+					if face/extra/now-over? [
+						face/extra/now-over?: #(false)
+						popup-help/close ""
+						do-events
+					]	            	
+	                load-and-run recent-menu/get-item 1
+	            ]
+            space 1x1
             check-for-file-change: base 40x24 blue font-size 12 bold center white "File: " rate 999:00:00 ;-- hold here until we turn it on
                 [
                     monitor-file-change either check-for-file-change/rate = 999:00:00 [ true ] [ false ]
@@ -1629,35 +1845,54 @@ dc-ctx: context [
                 on-create [
                     monitor-file-change (all-to-logic reload-on-change?)
                 ]
-            active-filename: text font-size 12 229x24 center white on-up [
+            active-filename: dc-text-with-tooltip font-size 12 229x24 center white 
+            	with [ extra/message: (to-string dc-reactor/current-file) ]
+            	on-up [
                     run-and-save "file-name-clicked"
                 ]
-                extra [ 'first-over? true ]
                 react [ active-filename/text:  to-string second split-path dc-reactor/current-file ]
-                on-over [
-            	    either event/away? [
-            	        active-filename/extra/first-over?: 'true
-            	        popup-help/close ""
-            	    ][
-            	        if active-filename/extra/first-over? = 'true [
-            	            active-filename/extra/first-over?: 'false
-            	            popup-help/offset (to-string dc-reactor/current-file) (face/parent/offset + face/offset + event/offset + 20x0  )
-            	        ]
-            	    ]
-                ]
+
+            space 2x1    
+			run-source-btn: dc-button-with-image-and-tooltip 22x21 play-icon
+				with [ extra/message: "Run Script (Right Ctrl Key)"]
+				on-click [
+					face/rate: 100:40:39
+					if face/extra/now-over? [
+						face/extra/now-over?: #(false)
+						popup-help/close ""
+						do-events
+					]
+					run-and-save "play-icon"
+				]   
+
+			edit-source-btn: dc-button-with-image-and-tooltip 22x22 edit-icon-normal
+				with [ extra/message: "Open Script with External Editor"]
+				on-click [
+					face/rate: 100:40:39
+					if face/extra/now-over? [
+						face/extra/now-over?: #(false)
+						popup-help/close ""
+						do-events
+					]
+                    monitor-file-change either check-for-file-change/rate = 999:00:00 [ true ] [ false ]
+                    editor/monitor dc-reactor/current-file
+				]   
+				             
             space 6x4
-            button 45x24 right center  " RED>> " 
+            red-run-btn: dc-button-with-tooltip 50x24 right center font-size 10  " RED>> " bold
+            	with [ extra/message: "Click to run the Red code to the right"]
 	            on-click [
+					face/rate: 100:40:39
+					if face/extra/now-over? [
+						face/extra/now-over?: #(false)
+						popup-help/close ""
+						do-events
+					]	            	
 	                do-red-cmd
-	            ]
-	            rate 00:00:00.1
-	            on-time [
-	           		face/rate: 999:99:99
-		    		system/console/run/no-banner 
 	            ]
 	            
             space 0x4
-            red-cmd-field: field 255x24
+            red-cmd-field: field font-size 11 325x24
                 extra [
                     history: []
                     index: 1
@@ -1692,7 +1927,6 @@ dc-ctx: context [
                     do-red-cmd
                 ]
                 on-mid-down [
-                    print "red-cmd-field //mid-down "
                     face/selected: 1x300
                 ]
                 on-create [
@@ -1763,14 +1997,8 @@ dc-ctx: context [
             dot-button: button "..." 20x24 [
                 requester-on-field 'red-cmd-field
             ]
-
-            mk-btn: button 36x24 font-size 8 "Mk Btn" [
-                insert-vid-object/with-on-click/with-text "button" (to-block red-cmd-field/text ) red-cmd-field/text
-                run-and-save "make-button"
-            ]
             return
-
-            text "Setup Code (before layout)" 200x15
+            base "Setup Code (before layout)" 200x24  snow bottom left
             base 250x10 transparent
             insert-tool-button: Base "    Insert Tool  " left 110x22 138.138.138 font-color 255.255.255
                 draw [
@@ -1804,35 +2032,158 @@ dc-ctx: context [
 
             pad 0x4
             ;-- horizontal splitter
-            splith: split-style 752x6 data [setup-code/size vid-label/offset vid-code/offset ver-text/offset vid-code/size edit-window-code/offset ]
+            ;-- splith: split-style 752x6 data [setup-code/size vid-label/offset zero-out-selected-obj/offset vid-code/offset vid-code/size selected-object-label/offset selected-object-field/offset ]
+            splith: split-style 752x6 data [setup-code/size vid-label/offset vid-code/offset vid-code/size selected-object-panel/offset ]
             across
-            vid-label: text "Layout code in VID dialect" 150x15
-            base 50x10 transparent
-            edit-window-code: button "Edit Window and Completion Code" 240x15 [
-                either dc-code-version = 2 [
-                    edit-show-window-code get-show-window-code (read current-file)
-                ][
-                    print "Version 1 doesn't have window config"
-                ]
-            ]
+            base 510x35 transparent
+            return
+            vid-label: base "Layout code" 80x26 white bottom center 
+			on-create [
+				face/draw: compose/deep [
+					pen black 
+					line-width 1 
+					box 1x8 79x27 
+					pen snow 
+					fill-pen snow
+					box 0x0 80x7
+				]
+			]
+			
+			at selected-object-offset selected-object-panel: panel gray 
+				[
 
-            ver-text: text right 250x15 
-            	on-create [
-	                ver-text/text: either system/build/git [
-	                	rejoin [ "Red build date: " system/build/git/date ]
-	                ][
-	                	rejoin [ "MANUAL! build date: " system/build/date ]
-	                ]
-	                	
-            	]
+					origin 0x0
+					pad 2x2
+					space 1x0
+					insert-method-label: base " Insert Method" left 90x24 198.196.225.0
+					selected-object-label: base dc-default-selected-object-label-string 198.196.225
+						center 185x24
+					
+					pad 1x1
+					lock-toggle-button: button-with-toggle-image 22x22 unlocked-icon
+						with [
+							extra/first-image: unlocked-icon
+							extra/second-image: locked-icon							
+						] 
+						on-click [
+							either face/extra/showing-image = 2 [ 
+								;-- UNLOCKING ---
+								if selected-object-field/text <> dc-default-selected-object-string [
+									selected-object-label/text: dc-default-selected-object-label-string
+									face/extra/showing-image: 1 
+									face/extra/current-image: face/extra/first-image 
+									face/image: face/extra/first-image								
+ 									voe-menu-handler selected-object-field/text "highlight-source-object" 
+								]
+							][
+								;-- LOCKING ON ---
+								if selected-object-field/text <> dc-default-selected-object-string [
+									face/extra/showing-image: 2 
+									face/extra/current-image: face/extra/second-image 
+									face/image: face/extra/second-image
+ 									voe-menu-handler/lock selected-object-field/text "highlight-source-object" 
+ 										reduce [
+ 											selected-object-field/text ""
+ 										]									
+								]
+							]
+						]
+						do [
+							set 'set-lock-toggle-button-state function [
+								state [logic!]
+							][
+								;-- defaults to UNLOCKED
+								target-image: lock-toggle-button/extra/first-image
+								img-num: 1
+
+								if state [  ;-- ON / LOCKED
+									target-image: lock-toggle-button/extra/second-image
+									img-num: 2
+								]
+		                    	lock-toggle-button/extra/current-image: lock-toggle-button/image: target-image
+		                    	lock-toggle-button/extra/showing-image: img-num
+							]
+						]
+					b3: base 1x0 transparent
+					return
+					pad 2x0
+					insert-method: drop-list 90x25 ;-- orig 86x25
+						data [
+							"Insert Before" 
+							"Insert After"
+						] 
+						select 2
+					
+					selected-object-field: field 135x23 dc-default-selected-object-string disabled
+					space 0x0
+					pad 0x1
+					selected-object-dots-btn: dc-button-with-tooltip "..." 21x21 
+				        with [ 
+				            extra/message: "Select a VID Object from a list"
+				        ]					
+						on-click [
+							face/rate: 100:40:39
+							if face/extra/now-over? [
+								face/extra/now-over?: #(false)
+								popup-help/close ""
+								do-events
+							]				
+							named-objs: get-list-of-named-objects/every
+							req-offset: ((get-absolute-offset selected-object-field)  + -2x25 )
+							if req-res: request-list-enhanced/size/offset "Select an Object" named-objs 200x200 req-offset [
+								voe-menu-handler req-res "highlight-source-object"
+							]
+						]
+					space 2x0
+					zero-out-selected-obj-btn: dc-button-with-image-and-tooltip 22x21 zero-out-icon-normal 
+						on-click [
+							face/extra/close-pop
+							un-highlight-source-object "" "" ""
+							clear-vid-code-selected
+						]
+						with [
+	    					extra/message: "Clear the Insertion Point" 
+						]
+						
+					edit-selected-obj-btn: dc-button-with-image-and-tooltip 22x21 edit-icon-normal
+						on-click [
+							face/extra/close-pop
+							if selected-object-field/text <> dc-default-selected-object-string [
+								edit-vid-object selected-object-field/text "vid-code"
+							]
+						]
+						with [
+	    					extra/message: "Edit 'Insertion Point' Object" 
+						]						
+				]			
+            space 4x0
             return
             vid-code: area vid-size
+            	extra [
+            		last-selection: ""
+            		selected-object: ""
+            	]
                 on-create [
                     face/flags: none
                 ]
                 on-change [
                     check-source-change event/key
                     vid-code-undoer/post-changed-text vid-code/text
+                ]
+                on-select [
+                	either face/selected [
+						face/extra/selected-object: vid-obj-info/located-at/just-name vid-code/text "" vid-code/selected                 		
+						if all [
+							face/extra/selected-object 
+							face/extra/selected-object <> face/extra/last-selection
+						][
+							orig-sel: vid-code/selected
+							voe-menu-handler/no-editor face/extra/selected-object "highlight-source-object"
+							vid-code/selected: orig-sel							
+						]
+						face/extra/last-selection: face/extra/selected-object
+                	][
+                	]
                 ]
             return
             at 0x0 show-window-code: area hidden
@@ -1850,7 +2201,7 @@ dc-ctx: context [
                     ;-- insert-tool/pane: layout/only compose/deep [
                     	space 10x2
                         return
-                        text "    Insert Tool" 188.188.188 font-size 11 white
+                        insert-tool-heading: text "    Insert Tool" 188.188.188 font-size 11 white
                         space 27x24
                         reload-button: base 18x18 188.188.188 
                             draw [
@@ -1900,13 +2251,9 @@ dc-ctx: context [
                         insert-return: base "Insert RETURN" 87x18 188.188.188 font-color 255.255.255
                             draw [pen 255.255.255 box 0x0 87x18]
                         	on-down [
-                        	    either vid-code/selected [
-                        	        obj-loc: find-vid-object/location vid-code/text vid-code/selected
-                        	        insert-return-before  "" obj-loc/2 ""
-                        	    ][
-                            	    append vid-code/text {^/^-return^/}
-                    	            run-and-save "insert-return-before"
-                        	    ]
+                        		set [ selected-obj after end-of-script ] get-selected-object-info
+                        		insert-code/:after/:end-of-script "return" selected-obj
+                        		run-and-save "insert-return"
                         	]
                         	on-over [either event/away? [
                         	        ;-- back to normal
@@ -1977,14 +2324,19 @@ dc-ctx: context [
                             "Object" [
                             	origin 10x10
                                 basic-list: text-list (list-size)
-                                    data dc-plain-styles
+                                    data sort dc-stock-styles
                                     on-change [
                                     	if sel: pick face/data face/selected [
-	                                        set-insert-tool-tab 1
+                                    		set-dc-variable 'dc-object-catalog-selected face/selected
+                                    		set-dc-variable 'dc-insert-tool-tab 1
 	                                        check-tool-pinned
 	                                        replace/all sel " " "-"
 	                                        face/selected: none
-	                                        insert-vid-object to-word rejoin [ "ins-" sel ]
+											set [ selected-obj after end-of-script ] get-selected-object-info
+											insert-vid-object/:after/:end-of-script to-word rejoin [ "ins-" sel ] selected-obj
+	                                        face/selected: dc-object-catalog-selected 
+	                                        face/selected: none 
+	                                        set-focus insert-tool-heading
 	                                    ]
                                     ]
                             ]
@@ -1993,86 +2345,96 @@ dc-ctx: context [
                                 active-list: text-list (list-size)
                                     data []
                                     on-change [
-                                        if sel: pick face/data face/selected [
-	                                        set-insert-tool-tab 2
+                                        if selection: pick face/data face/selected [
+                                        	set-dc-variable 'dc-insert-tool-tab 2
 	                                        check-tool-pinned
-	                                        object-type: to-string select dc-all-active-styles to-set-word sel
+	                                        object-type: to-string select dc-all-active-styles to-set-word selection
 	                                        face/selected: none
- 	                                        insert-vid-object/style/named object-type sel sel                                        	
+											set [ selected-obj after end-of-script ] get-selected-object-info	
+ 	                                        insert-vid-object/style/named/:after/:end-of-script object-type selected-obj selection selection                                        	
+ 	                                        set-focus insert-tool-heading
                                         ]
                                     ]
                             ]
                             "Style Catalog" [
                             	origin 10x10
                                 below
-                                styled-list: text-list (list-size - 75x0 )
+                                styles-vid-list: text-list (list-size - 75x0 )
                                     data dc-catalog-styles
                                     on-change [
-                                    	if sel: pick face/data face/selected [
-	                                        set-insert-tool-tab 3
+                                    	if selection: pick face/data face/selected [
+                                    		set-dc-variable 'dc-style-catalog-selected face/selected
+                                    		set-dc-variable 'dc-insert-tool-tab 3
 	                                        check-tool-pinned
 	                                        face/selected: none
 	                                        scenario: is-scenario-file? current-file
-	                                        insert-styled-object/catalog/:scenario sel
+											set [ selected-obj after end-of-script ] get-selected-object-info
+											insert-styled-object/catalog/:scenario/:after/:end-of-script selection selected-obj
+	                                        face/selected: dc-style-catalog-selected
+	                                        face/selected: none 
+	                                        set-focus insert-tool-heading
                                     	]
                                     ]
                                 space 10x10
                                 return
                                 button "Edit Style" [
-                                    set-insert-tool-tab 3
+                                    set-dc-variable 'dc-insert-tool-tab 3
                                     if req-res: request-file/title/file/filter "Select a style to Open" dc-style-catalog-path [ "Red File" "*-style.red" ] [
-                                        print [ "req-res = " req-res ]
                                         load-and-run req-res
                                     ]
                                 ]
                                 button "New Style" [
-                                    set-insert-tool-tab 3
+                                    set-dc-variable 'dc-insert-tool-tab 3
                                     new-dc/path/message dc-style-catalog-path "Enter New style name. Name format: (*-style.red)"
                                 ]
                             ]
                             "Scenario"[
                             	origin 10x10
                                 below
-                                scenario-list: text-list (list-size - 100x0 )
+                                scenario-list: text-list (list-size - 49x0 )
                                     data dc-scenarios
                                     on-change [
-                                        if sel: pick face/data face/selected [
-	                                        set-insert-tool-tab 4
+                                        if selection: pick face/data face/selected [
+                                        	set-dc-variable 'dc-scenario-catalog-selected face/selected
+	                                        set-dc-variable 'dc-insert-tool-tab 4
 	                                        check-tool-pinned
 	                                        face/selected: none
-	                                        insert-scenario sel
+											set [ selected-obj after end-of-script ] get-selected-object-info
+											insert-scenario/:after/:end-of-script selection selected-obj
+	                                        face/selected: dc-scenario-catalog-selected
+	                                        face/selected: none
+	                                        set-focus insert-tool-heading
 	                                    ]
                                     ]
-                                space 10x10
+                                space 4x8
                                 return
-                                button "Edit Scenario" [
-                                    set-insert-tool-tab 4
+                                button {Edit^/Scenario} 50x35 [
+                                    set-dc-variable 'dc-insert-tool-tab 4
                                     if req-res: request-file/title/file/filter "Select a scenario to Open" dc-scenario-catalog-path [ "Red File" "*-scenario.red" ] [
-                                        print [ "req-res = " req-res ]
                                         load-and-run req-res
                                     ]
                                 ]
-                                button "New Scenario" [
-                                    set-insert-tool-tab 4
+                                button {New^/Scenario} 50x35 [
+                                    set-dc-variable 'dc-insert-tool-tab 4
                                     new-dc/path/message dc-scenario-catalog-path "Enter New style name. Name format: (*-scenario.red)"
                                 ]
                             ]
                             "Code" [
                             	origin 10x10
-                                code-catalog-list: text-list (list-size - 100x0 )
+                                code-catalog-list: text-list (list-size - 75x0 )
                                     data dc-code-catalog
                                     on-change [
                                         if sel: pick face/data face/selected [
-	                                        set-insert-tool-tab 5
+	                                        set-dc-variable 'dc-insert-tool-tab 5
 	                                        check-tool-pinned
 	                                        face/selected: none
 	                                        insert-catalog-code sel
 	                                        face/selected: none
                                         ]
                                     ]
-                                space 10x10
+                                space 4x8
 								button 75x34 {Show Code ^/Folder} [
-									set-insert-tool-tab 5
+									set-dc-variable 'dc-insert-tool-tab 5
 									show-folder rejoin [ root-path %code-catalog/ ]	
 								]                                    
                             ]
@@ -2091,13 +2453,25 @@ dc-ctx: context [
         ]
 
         do [
+        	refresh-objects-list: does [
+        		basic-list/data: sort dc-stock-styles 
+        		basic-list/selected: dc-object-catalog-selected	
+        		basic-list/selected: none	
+        	]
+        	
             refresh-style-catalog: does [
                 dc-catalog-styles: sort get-catalog-entry-names
-                styled-list/data: dc-catalog-styles
+                styles-vid-list/data: dc-catalog-styles
+                styles-vid-list/selected: dc-style-catalog-selected
+                styles-vid-list/selected: none
+                basic-list/selected: dc-object-catalog-selected 
+                basic-list/selected: none
             ]
             refresh-scenario-catalog: does [
                 dc-scenarios: sort get-catalog-entry-names/scenario
                 scenario-list/data: dc-scenarios
+                scenario-list/selected: dc-scenario-catalog-selected
+                scenario-list/selected: none
             ]
             refresh-code-catalog: does [
             	dc-code-catalog: sort get-catalog-entry-names/code 
@@ -2116,6 +2490,7 @@ dc-ctx: context [
                 refresh-style-catalog
                 refresh-scenario-catalog
                 refresh-code-catalog
+                refresh-objects-list
                 if not refresh [
                     insert-tool/offset: to-pair reduce [ (vid-code/size/x - 346) 32 ]
                     insert-tool/size: to-pair reduce [ insert-tool-width (mainwin/size/y - 45) ]
@@ -2133,17 +2508,22 @@ dc-ctx: context [
                 insert-tool-open?: false
                 save-settings
             ]
-
-            dc-plain-styles: [ "area" "base" "box" "button" "calendar" "camera" "check"
-                "drop down" "drop list" "field" "group box" "h1" "h2" "h3" "h4" "h5" "image"
-                "iso-info" "iso-question" "iso-warning" "iso-action-required" "iso-prohibit"
-                "panel" "progress" "radio" "rich text" "scroller" "slider" "tab panel"
-                "text" "text list" "timer" "toggle"
+            
+            dc-stock-styles: function [] [
+            	list: collect [
+            		foreach style (keys-of system/view/vid/styles) [
+            			keep to-string style
+            		]
+            	]
+            	remove find list "window"
             ]
+            
+            dc-stock-panels: [ "panel" "tab-panel" "group-box" ]
+            
 
             check-source-change: function [ keycode ][
                 if all [ (keycode <> 'right-control ) (keycode <> 'F5 ) ][
-                    either live-update? [
+                    either dc-live-update? [
                         run-and-save "internal-source-change"
                     ][
                         active-filename/color: yellow
@@ -2155,7 +2535,6 @@ dc-ctx: context [
             	series
             	new-name
             ][
-
             	current-name: string-select series "Title:"
             	replace series rejoin [ "Title: " current-name ] rejoin [ "Title: " new-name ]
             ]
@@ -2258,7 +2637,12 @@ dc-ctx: context [
                 /col col-num
                 /find find-string
             ][
+                if none? dc-external-editor [
+                	set-external-editor/none-set
+                	return ""	
+                ]
                 editor-executable: to-local-file dc-external-editor
+                red-filename: filename
                 filename: to-local-file filename
 
                 call-cmd: rejoin reduce (bind dc-external-editor-commands/plain-open 'filename)
@@ -2272,6 +2656,13 @@ dc-ctx: context [
                 ]
 
                 if all [ find (all-to-logic dc-external-editor-commands/open-with-find )] [
+                    x-editor: to-string dc-external-editor
+                    either not (system/words/find x-editor "uedit") [
+                    	locations: locate-in-file red-filename find-string
+                    	line-num: locations/1
+                    	col-num: locations/2	
+                    ][
+                    ]
                     call-cmd: rejoin reduce (bind dc-external-editor-commands/open-with-find 'filename)
                 ]
 
@@ -2328,7 +2719,10 @@ dc-ctx: context [
                     obj-name
                     rel-dir {+1 or -1, +1 returns end of obj, -1 returns start of obj}
                 ][
-                    src-cdta: get-src-cdta vid-code/text
+                    
+                    ;-- src-cdta: get-src-cdta vid-code/text
+                    src-cdta: vid-cdta vid-code/text
+                    
                     obj-info: find-in-array-at/every src-cdta 4 obj-name
                     o-info: either (rel-dir < 0)[
                         first obj-info
@@ -2338,38 +2732,30 @@ dc-ctx: context [
                     return o-info/token
                 ]
 
-                valid-object?: function [
-                    src-cdta
-                    obj-record
-                ][
-
-                    if obj-record/object = "" [ return false ]
-                    obj-info: find-in-array-at/every src-cdta 4 obj-record/object
-
-                    either ( obj-info/1/input = "style" ) [
-                        return false
-                    ][
-                        return true
-                    ]
-                ]
-
-                highlight-gui: function [ obj-name ][
-                    obj-offset: get to-path (reduce [ to-word obj-name 'offset ])
-                    obj-size: get to-path (reduce [ to-word obj-name 'size ])
 
 
-            	    obj-image: either error? (try [ try-img: to-image get to-word obj-name ])[ [] ] [ try-img ]
-                    diff-offset: output-panel/offset + 8x51
-                    win-offset: obj-offset + diff-offset + --dc-mainwin-offset
-                    hilight-window: layout/tight compose/deep [
+                set 'highlight-gui function [ ;-- highlight-gui:
+                	obj [string! object!]
+                ][ 
+                	
+                	if string? obj [
+                		obj: get to-word obj
+                	]
+                	
+                    ;obj-offset: get to-path (reduce [ to-word obj 'offset ])
+                    obj-offset: obj/offset
+                    ;obj-size: get to-path (reduce [ to-word obj 'size ])
+                    obj-size: obj/size
+            	    ;obj-image: either error? (try [ try-img: to-image get to-word obj ])[ [] ] [ try-img ]
+            	    obj-image: either error? (try [ try-img: to-image obj ])[ [] ] [ try-img ]
+                    ;win-offset: get-absolute-offset (get to-word obj)
+                    win-offset: get-absolute-offset obj
+                    highlight-window: layout/tight compose/deep [
                         base1: base (obj-image) (obj-size)
-                            on-down [
-                                unview/only hilight-window
-                            ]
-                            rate 00:00:00.015
+                            rate 00:00:00.01
                             on-time [
                                 face/extra/flash-count: face/extra/flash-count + 1
-                                either face/extra/flash-count < 16 [
+                                either face/extra/flash-count < 15 [
                                     f-count: face/extra/flash-count
                                     pen-color: pick [ red black yellow ]  f-count % 3 + 1
                                     base1/draw:  reduce [
@@ -2378,19 +2764,24 @@ dc-ctx: context [
                                         'box 0x0 (obj-size)
                                     ]
                                 ][
-                                    unview/only hilight-window
+                                	if value? 'highlight-window [
+                                		lprint/force "#2800"
+                                    	;face/rate: 999:99:99
+                                    	unview/only highlight-window
+                                    ]
                                 ]
                             ]
                             extra [ flash-count: 0]
                     ]
 
-                    view/flags/tight/options hilight-window
+                    view/flags/tight/options highlight-window
                         [ ;-- flags
                             no-border
                         ][ ;-- options
                             offset: win-offset
                         ]
                 ]
+                
                 highlight-gui-object: func [ obj-name src-position last-char ] [
                     highlight-gui obj-name
                 ]
@@ -2418,18 +2809,84 @@ dc-ctx: context [
                     refresh-style-catalog
                 ]
 
-
-            	convert-object-to-style: func [ obj-name src-position last-char ] [
+            	convert-object-to-style: function [ obj-name src-position last-char ] [
             	    convert-to-style obj-name vid-code
             	]
+            	
+				set 'un-highlight-source-object func [ 
+					obj-name 
+					src-position 
+					last-char 
+					/quiet
+				] [ ;-- un-highlight-source-object:
+					if not quiet [
+						vid-code/selected: none
+					]
+					selected-object-field/text: dc-default-selected-object-string
+					selected-object-label/text: dc-default-selected-object-label-string
+					selected-object-label/color: dc-default-selected-object-label-color
+					set-lock-toggle-button-state off
+					if dc-locked-on-object <> [][
+						tilde-id: 2
+						target-obj-name: rejoin [ "target-object-label" dc-locked-on-object/:tilde-id ]
+						if value? to-word target-obj-name [
+							lock-obj: get to-word target-obj-name
+    	                	do-actor lock-obj none 'down						
+						]
+						dc-locked-on-object: []						
+					]
+				]
 
-            	highlight-source-object: func [ obj-name src-position last-char ] [
+            	set 'highlight-source-object func [ 
+            		obj-name 
+            		src-position 
+            		last-char 
+            		/no-editor
+            	][ ;-- highlight-source-object:
+					
+            	    either vid-code/selected = src-position [
+            	    	clear-vid-code-selected
+            	    ][
+            	    	
+	            	    vid-code/selected: src-position
+	            	    vid-code/extra/last-selection: obj-name
+	            	    selected-object-field/text: obj-name
+	            	    selected-object-label/color: dc-hilight-selected-object-label-color
+	            	    selected-object-label/text: dc-default-selected-object-label-string
+	                    if check-for-file-change/rate <> 999:00:00 [
+	                        line-num: offset-to-line-num/vid vid-code/text src-position/x
+	                        if not no-editor [
+	                        	editor/line dc-filename line-num	
+	                        ]
+	                    ]
+            	    ]
+            	    set-lock-toggle-button-state false
+					if dc-locked-on-object <> [][
+						if (first dc-locked-on-object) <> obj-name [
+							dc-locked-on-object: copy []
+						]
+					]
+            	]
+
+				lock-to-object: func [ obj-name src-position last-char ] [
+					if uid: get-voe-window-uid obj-name [
+						target-obj: get to-word rejoin [ "target-object-label" uid ]
+						lock-fun: get to-word rejoin [ "lock-to-this-object" uid ]
+						do [ lock-fun target-obj obj-name uid ]
+					]
+				]
+
+				set 'lock-highlight-source-object func [ obj-name src-position last-char ] [ ;-- lock-highlight-source-object
             	    vid-code/selected: src-position
                     if check-for-file-change/rate <> 999:00:00 [
                         line-num: offset-to-line-num/vid vid-code/text src-position/x
                         editor/line dc-filename line-num
                     ]
-            	]
+                    selected-object-label/text: dc-hilight-selected-object-label-string
+                    selected-object-label/color: dc-hilight-selected-object-label-color
+                    selected-object-field/text: obj-name 
+					set-lock-toggle-button-state on
+            	]	
 
             	edit-previous-object: func [ obj-name src-position last-char ] [
             	    obj-name: first back back tail dc-last-voe-object
@@ -2519,33 +2976,40 @@ dc-ctx: context [
                     voe-object-renamed: false
                     fail-msg: rejoin [ "The object: '" object-name "' is not a Style, so does not have a 'setup-style' attached to it."]
                     if not object-style: get-object-style get-object-source object-name vid-code/text [
-                    	request-message fail-msg
+                    	;request-message fail-msg
                     	return false
                     ]
                     if stock-style? to-string object-style [
-                    	request-message fail-msg
+                    	;request-message fail-msg
                     	return false
                     ]
-                    setup-results: run-setup-style object-name src-position last-char
-                    if any [
-                    	setup-results = false
-                    	setup-results = 'no-setup-exists
-                    ][
-                    	return false
-                    ]
-                    
-                	either setup-results = true [
-                		evo-name: object-name
-                	][
-                		if active-voe? object-name [
-                			close-object-editor object-name	
-                			voe-object-renamed: true
-                		]
-                		new-object: true
-                		evo-name: setup-results
-                	]
+					either new-object [
+						evo-name: object-name
+					][
+	                    setup-results: run-setup-style object-name src-position last-char
+	                    if any [
+	                    	setup-results = false
+	                    	setup-results = 'no-setup-exists
+	                    ][
+	                    	return false
+	                    ]
+	                    
+	                	either setup-results = true [
+	                		evo-name: object-name
+	                	][
+	                		if active-voe? object-name [
+	                			close-object-editor object-name	
+	                			voe-object-renamed: true
+	                		]
+	                		new-object: true
+	                		evo-name: setup-results
+	                	]
+	                ]
+                	
 					if not manual [
-						update-downstream-voe/only evo-name	
+						if not unset? :update-downstream-voe [ ;-- VOE hasn't been run yet.
+							update-downstream-voe/only evo-name		
+						]
 					]
 					if any [ 
 						all [ 
@@ -2559,20 +3023,51 @@ dc-ctx: context [
 					]
 					
                 ]
+                
+            	set 'zdelete-vid-object function [ ;-- delete-vid-object: func 
+            		obj-name [string!]
+            	][
+            		obj-info: get-object-source/whitespace/position/with-newline obj-name vid-code/text
+            		one-char-back: pick vid-code/text (obj-info/3/x - 1)
+            		;one-char-back: " "
+            		skip-amt: either one-char-back = #"^/" [ 2 ][ 1 ]
+            		 
+;            			either is-whitespace? one-char-back [
+;            				1
+;            			][
+;            				1
+;            			]	 
+;            		]
+            		full-src: copy/part ( skip vid-code/text obj-info/3/x - skip-amt ) (obj-info/3/y - obj-info/3/x + skip-amt)
+            		remove/part ( skip vid-code/text obj-info/3/x - 1 ) (obj-info/3/y - obj-info/3/x + 1)
+            		return reduce [ full-src obj-info/3/x ]
+            	]
             	
-            	delete-object: func [ obj-name src-position last-char ][
-                    obj-loc: get-object-source/position/whitespace obj-name vid-code/text 
-                    remove/part ( skip vid-code/text obj-loc/3/x - 1 ) (obj-loc/3/y - obj-loc/3/x + 1)
-                    close-object-editor obj-name
+            	delete-object: func [ 
+            		obj-name 
+            		src-position 
+            		last-char 
+            		/local res
+            	][ 
+                    res: delete-vid-object obj-name
                     run-and-save "delete-object"
+                    close-object-editor obj-name ;-- This needs to happen last, otherwise crashes sometimes.
             	]
 
-            	set 'insert-return-before function [ obj-name src-position last-char ][ ;-- insert-return-before:
-            	    insert (skip vid-code/text (src-position/x - 1)) {return^/^-}
+            	set 'insert-return-before function [ 
+            		obj-name 
+            		src-position 
+            		last-char 
+            	][ ;-- insert-return-before:
+					insert-code "return" obj-name					
             	    run-and-save "insert-return-before"
             	]
 
-                remove-return-before: func [ obj-name src-position last-char ][
+                set 'remove-return-before func [ 
+                	obj-name 
+                	src-position 
+                	last-char 
+                ][
                     whitespace: charset " ^-^/]"
             	    backwards-offset: 20
             	    skip-amt: max (src-position/x - backwards-offset ) 0
@@ -2608,179 +3103,26 @@ dc-ctx: context [
             	    ]
             	]
 
-                duplicate-object: func [ 
-                    obj-name 
-                    src-position 
-                    last-char 
-                ][
-                    vid-code-offset: length? vid-code/text
-                    pre-newline: "^/"
-                    post-newline: ""
-                    src-info: second query-vid-object vid-code/text obj-name []
-                    current-code: copy/part (skip vid-code/text src-position/x - 1) ( src-position/y - src-position/x + 1 )
-                    loaded-code: load current-code
-                    current-set-words: get-set-words to-block vid-code/text
-                    new-obj-num: 1
-                    new-obj-name: rejoin [ obj-name "-" new-obj-num ":" ]
-                    while [all-to-logic find current-set-words (to-set-word new-obj-name)][
-                        new-obj-num: new-obj-num + 1
-                        new-obj-name: rejoin [ obj-name "-" new-obj-num ":" ]
-                    ]
-                    replace current-code (rejoin [obj-name ":"]) new-obj-name
-                    if loaded-code/at [
-                        replace current-code (rejoin ["at " to-string loaded-code/at " "]) ""
-                    ]
-
-
-                    if vid-code/selected [
-                        object-selected: find-vid-object/location vid-code/text vid-code/selected
-
-                        if find (get-styles to-block vid-code/text) (to-set-word first object-selected) [
-                                style-end-pos: tail-position-of-styles vid-code/text
-                                object-selected/2/x: (style-end-pos/y + 2 )
-                        ]
-
-                        vid-code-offset: ( object-selected/2/x - 1)
-                        vid-code-offset: char-index?/back vid-code/text vid-code-offset #"^/"
-                        pre-newline: ""
-                        post-newline: "^/"
-                    ]
-                    insert (skip vid-code/text vid-code-offset) rejoin [ pre-newline tab current-code post-newline ]
-                    run-and-save "duplicate-object"
-                    new-obj-name: (trim/with/tail new-obj-name ":")
-                    re-run-setup-style/new-object new-obj-name "" "" ;-- re-run-setup-style handles evo-after-insert 
-            	]
-
-                set 'find-first-vid-object function [
-                    src-cdta
-                    /last ;-- paradox, I know
-                ][
-                    cur-obj: ""
-                    loop-candata: either last [
-                        reverse copy src-cdta
-                    ][
-                        src-cdta
-                    ]
-                    foreach rec loop-candata [
-                        either all [ (rec/object <> cur-obj) (valid-object? src-cdta rec )] [
-                            return rec/object
-                        ][
-                            cur-obj: copy rec/object
-                        ]
-                    ]
-                    return none
-                ]
-
-                find-relative-vid-obj-position: function [
-                    src-cdta 
-                    obj-candata 
-                    rel-pos
-                ][
-                    check-ndx: obj-candata/1/index
-                    rel-dir: positive? rel-pos [ +1 ] [ -1 ]
-
-                    curr-obj: obj-candata/1/object
-                    obj-count: 0
-                    rel-dir: either (positive? rel-pos) [ 1 ] [ -1 ]
-                    last-obj: copy curr-obj
-                    while [
-                        check-ndx: check-ndx + rel-dir
-                        picked: pick src-cdta check-ndx
-                    ][
-                        if all [ (picked/object <> last-obj) (valid-object? src-cdta picked) ] [
-                            obj-count: obj-count + 1
-                            last-obj: copy picked/object
-                        ]
-                        if obj-count = (absolute rel-pos) [
-                            return picked/object
-                        ]
-                    ]
-                    return false
-                ]
-
-                move-object-relative: function [
-                    obj-name
-                    src-position
-                    last-char
-                    rel-num
-                    /beginning
-                    /end
-                    /before-selected
-                    /after-selected
-                ][
-                    object-name-field: 4
-                    src-cdta: get-src-cdta vid-code/text
-                    obj-info: find-in-array-at/every src-cdta object-name-field obj-name 
-					
-                    either beginning [
-                        target-obj: find-first-vid-object src-cdta
-                    ][
-                        target-obj: find-relative-vid-obj-position src-cdta obj-info rel-num
-                    ]
-                    
-                    if end [
-                        target-obj: find-first-vid-object/last src-cdta
-                    ]
-                    if any [
-                    	before-selected
-                    	after-selected
-                   	][
-                   		rel-num: -1
-                   		if vid-code/selected = none [
-                   			request-message "You haven't made a text selection on which to base the	object movement. Make a text selection either from withing the VID code editor or use the VID Object Editor. Then try your move operation again."
-                   			return ""
-                   		]
-                        if fnd-obj: find-vid-object vid-code/text vid-code/selected [
-                            target-obj: fnd-obj
-                            if after-selected [ rel-num: +1 ]
-                        ]
-                    ]
-
-                    either target-obj [
-						obj-loc: get-object-source/position/whitespace obj-name vid-code/text
-	                    current-code: copy/part ( skip vid-code/text obj-loc/3/x - 1 ) (obj-loc/3/y - obj-loc/3/x + 1)
-	                    if ((last current-code) <> #"^/") [ 
-	                    	append current-code "^/"
-	                    ]
-	                    
-	                    remove/part ( skip vid-code/text obj-loc/3/x - 1 ) (obj-loc/3/y - obj-loc/3/x + 1)
-						target-obj-loc: get-object-source/position/whitespace target-obj vid-code/text 
-						either (positive? rel-num )[
-							insert-pos: target-obj-loc/3/y	
-						][
-							insert-pos: (target-obj-loc/3/x - 1)	
+				set 'resync-selected-object function [ ;-- resync-selected-object:
+					/extern dc-locked-on-object
+				][ 
+					sel-obj: get-object-source/position/whitespace selected-object-field/text vid-code/text
+					either all [
+						selected-object-field/text <> dc-default-selected-object-string 
+						sel-obj: get-object-source/position/whitespace selected-object-field/text vid-code/text
+					][
+						code-location: 2 
+						vid-code/selected: sel-obj/:code-location
+						if dc-locked-on-object = [] [
+							clear-vid-code-selected
+						] 
+					][
+						clear-vid-code-selected
+						if sel-obj = #(false) [
+							un-highlight-source-object "" 0x0 ""	
 						]
-						insert-pos-value: pick vid-code/text insert-pos
-						pre-code-newline: copy ""
-						if all [
-							(insert-pos-value <> #"^/")
-							(not none? insert-pos-value)
-						][
-							pre-code-newline: "^/"	
-						]
-						insert (skip vid-code/text insert-pos ) rejoin [ pre-code-newline current-code ]
-                        run-and-save "move-object-relative"
-                    ][
-                        request-message rejoin ["Unable to move Object.^/Name: " obj-name "^/Positions: " rel-num ]
-                    ]
-                ]
-
-                move-specific: function [ obj-name src-position last-char ][
-                    amt: request-specific-move
-                    move-object-relative obj-name src-position last-char amt
-                ]
-
-                move-selected: function [ obj-name src-position last-char ][
-                    move-object-relative/selected obj-name src-position last-char 1
-                ]
-
-                move-before-selected: function [ obj-name src-position last-char ][
-                    move-object-relative/before-selected obj-name src-position last-char 1
-                ]
-
-                move-after-selected: function [ obj-name src-position last-char ][
-                    move-object-relative/after-selected obj-name src-position last-char 1
-                ]
+					]
+				]
 
                 move-back-1: func [ obj-name src-position last-char ][
                     move-object-relative obj-name src-position last-char -1
@@ -2799,7 +3141,6 @@ dc-ctx: context [
                 ]
 
                 move-forward-1: func [ obj-name src-position last-char ][
-                	print "move-forward-1"
                     move-object-relative obj-name src-position last-char 1
                 ]
 
@@ -2891,20 +3232,81 @@ dc-ctx: context [
                     return to-pair reduce  [ (first pick (first cdta) 10 ) (second pick (last cdta) 10 ) ]
                 ]
 
-                set 'voe-menu-handler function [ obj-name action ] [ ;-- voe-menu-handler:
-                	v-src: second ( query-vid-object vid-code/text obj-name [])
+                set 'voe-menu-handler function [	;-- voe-menu-handler: function 
+                	obj-name [string!]
+                	action [string!]
+                	/lock lock-details [block!] {locks the highlight-source-object to the object indicated}
+                	/no-editor
+                	/extern dc-locked-on-object
+                ][ 
+                    
+                    if all [ 
+                    	(dc-locked-on-object <> [])
+                    	(not lock)
+                    	(action = "highlight-source-object")
+                    ][
+                    	lprint [ "voe-menu-handler #LOCK-IN-PLACE dc-locked-on-object =" mold dc-locked-on-object]
+                    	tilde-id: 2
+                    	
+						target-obj-name: rejoin [ "target-object-label" dc-locked-on-object/:tilde-id ]
+						if value? to-word target-obj-name [
+							lock-obj: get to-word target-obj-name
+	                    	current-lock-object: copy first dc-locked-on-object
+	                    	do-actor lock-obj none 'down
+	                    	lprint [ "voe-menu-handler #AFTER-ACTOR"]
+	                    	dc-locked-on-object: copy []
+	                    	if obj-name = current-lock-object [
+		                    	action: "un-highlight-source-object"		
+		                    	bprint [ "voe-menu-handler #ACTION-CHANGED = un-highlight-source-object" ]
+	                    	]
+						]
+                    ]
+                    
+                    if lock [
+                    	dc-locked-on-object: lock-details
+                    	action: "lock-highlight-source-object"
+                    ]
+                    
+                    query-res: query-vid-object vid-code/text obj-name []
+                    if query-res/2 = #(false) [
+                    	return none
+                    ]
+                    v-pos: query-res/1
+                    v-src: query-res/2
+                	
                 	last-item: length? v-src
                 	last-char: pick vid-code/text v-src/:last-item/token/y
-                	y-correction: either (is-whitespace? any [ last-char #" " ] ) [ -1 ] [ 0 ] ;-- deal with last-char being 'none
-                	obj-position: to-pair reduce [ v-src/1/token/x ( v-src/:last-item/token/y + y-correction )]
+					
+					either none? v-pos [
+			       		y-correction: 0
+			        	if any [
+			        		(last-char = none)
+			        		(is-whitespace? last-char)	
+			        	][
+			        		y-correction: -1
+			        	]                	
+	                	obj-position: to-pair reduce [ v-src/1/token/x ( v-src/:last-item/token/y + y-correction )]
+	                ][
+	                	obj-position: v-pos 
+	                ]
+	                
+                	
+	                set [ selected-obj after end-of-script ] get-selected-object-info
+	                either no-editor [
+	                	menu-code: [ to-path reduce [ to-word action 'no-editor ] obj-name obj-position last-char selected-obj after ]	
+	                ][
+	                	menu-code: [ to-word action obj-name obj-position last-char selected-obj after ]		
+	                ]
+
                     either error? err: try/all  [
-                        do bind (reduce [ to-word action obj-name obj-position last-char]) 'delete-object
+                        do bind (reduce menu-code ) 'delete-object
                         true ;-- try return value
                     ][
-                        print "*** MENU ACTION ERROR (voe-menu-handler) ****************************************"
+                        print "*** MENU ACTION ERROR (Direct Code VID Object Editor Menu Handler) ****************************************"
                         print err
                         print "*********************************************************************************"
 
+                        
                 		return false
                     ][
                         return true
@@ -2915,59 +3317,62 @@ dc-ctx: context [
             load-direct-code dc-reactor/current-file
         ]
         splitv: split-style 6x100 data [pan/size splith/size setup-code/size vid-code/size output-panel/size output-panel/offset ]
-        output-panel: panel output-panel-size
+        output-panel: panel output-panel-size 
+        	data [ 'dc-output-panel ]	
     ]
 
     mainwin/menu: [
         "File" [
-            "New"                            new
-            "Open"                           open
-            "Open with External Editor"      open-external
-            "Save  (and Run)          Ctrl+S"  run-interpreter
-            "Save As             Ctrl+Shift+S"  save-as
-            "________________________"	     none
-            "Save As Next Version"           save-as-next-version
-            "Save Backup Version"            save-backup-version
-            "Save Image of GUI created"      save-gui-image
-            "________________________"		 none
-            "Open Current Folder"            show-cd
+            "New"                              	new
+            "Open                             	Ctrl+O"  open
+            "Open with External Editor"        	open-external
+            "Save  (AND RUN)          Ctrl+S"  	run-interpreter
+            "Save As             Ctrl+Shift+S" 	save-as
+            "________________________"	     	none
+            "Save As Next Version"           	save-as-next-version
+            "Save Backup Version"            	save-backup-version
+            "Save Image of GUI created"      	save-gui-image
+            "________________________"		 	none
+            "Open Current Folder"            	show-cd
             "Recent Files" []
             "Reload" [
                 "Reload Now" reload
-                "Reload when File changes ON"   reload-when-changed-on
-                "Reload when File changes OFF"  reload-when-changed-off
+                "Reload when File changes: ON"   reload-when-changed-on
+                "Reload when File changes: OFF"  reload-when-changed-off
             ]
 
-            "Run Separately - F9"       run-separate
-            "Do File (Attached) - F6"   do-the-current-file
-            "Restart Direct Code - F12" restart-program
+            "Run Separately    F9"       run-separate
+            "Do File (Attached)    F6"   do-the-current-file
+            "Restart Direct Code    F12" restart-program
         ]
         "Edit" [
             "Setup Code" [
-                "Undo      Control+Shift+Z"   setup-undo
-                "Redo      Control+Shift+Y"   setup-redo
+                "Undo      Ctrl + Shift + Z"   setup-undo
+                "Redo      Ctrl + Shift + Y"   setup-redo
             ]
             "VID Code" [
-                "Undo      Control+Shift+Z"   vid-undo
-                "Redo      Control+Shift+Y"   vid-redo
+                "Undo      Ctrl + Shift + Z"   vid-undo
+                "Redo      Ctrl + Shift + Y"   vid-redo
+                "Prettify VID Code"			  pretty-vid
             ]
+           	"Window Config. / Program Completion"   win-cfg            	
+
         ]
         "Object" [
-            "Show Named Objects"    	show-named-objects
-            "Graphical Object Inserter" vid-object-inserter
+            "Manage Named Objects"    	show-named-objects
             "Object Browser"        	object-browser
         ]
         "Debug" [
             "Logging" [
                 "View Log File"     show-log
-                "Logging OFF - F8"  change-logging-off
-                "Logging ON   - F8" change-logging-on
+                "Logging OFF -    F8"  change-logging-off
+                "Logging ON   -    F8" change-logging-on
             ]
 
             "System" [
                 "Dump Reactions"                show-all-reactions
-                "System/view/debug ON - F11"    system-view-debug-on
-                "System/view/debug OFF- F11"    system-view-debug-off
+                "System/view/debug ON -    F11"    system-view-debug-on
+                "System/view/debug OFF-    F11"    system-view-debug-off
             ]
         ]
         "Settings" [
@@ -2980,11 +3385,11 @@ dc-ctx: context [
             "Insert Tool NOT Pinned" 		insert-tool-pinned-off
         ]
         "User" [
-            "Run User Script F7" run-user-stuff
+            "Run User Script   F7" run-user-stuff
             "Edit User Script" edit-user-stuff
         ]
         "Help" [
-            "Direct Code Online Help"   direct-code-help
+            "Direct Code Online Help    F1"   direct-code-help
             "Quick Start Guide"         quick-start-guide
             "Red Online Search Tool"    red-online-search-tool
             "Create Error Report"       create-error-report
@@ -2995,10 +3400,18 @@ dc-ctx: context [
     mainwin/actors: make object! [
         on-menu: function [face [object!] event [event!]][
             switch/default event/picked [
+            	pretty-vid [ prettify-vid-code       ]
                 setup-undo [ dc-undo-redo/setup/undo ]
                 setup-redo [ dc-undo-redo/setup/redo ]
                 vid-undo   [ dc-undo-redo/vid/undo   ]
                 vid-redo   [ dc-undo-redo/vid/redo   ]
+                win-cfg    [
+					either dc-code-version = 2 [
+	                    edit-show-window-code get-show-window-code (read current-file)
+	                ][
+	                    print "Version 1 doesn't have window config"
+	                ]                 	
+                ]
                 recent-1  [ load-and-run recent-menu/get-item 1 ]
                 recent-2  [ load-and-run recent-menu/get-item 2 ]
                 recent-3  [ load-and-run recent-menu/get-item 3 ]
@@ -3024,7 +3437,6 @@ dc-ctx: context [
                 reload-when-changed-on [ monitor-file-change true ]
                 reload-when-changed-off [ monitor-file-change false  ]
                 restart-program [ restart-direct-code ]
-
                 object-browser [ red-object-browser ]
 
                 system-view-debug-on  [ system/view/debug?: true ]
@@ -3044,7 +3456,7 @@ dc-ctx: context [
                 ]
 
                 show-named-objects [
-                    named-objs: get-list-of-named-objects
+                    named-objs: get-list-of-named-objects/every
                     print [ newline "------ START OF NAMED OBJECTS ------" ]
                     ndx: 1
                     foreach obj-name named-objs [
@@ -3052,15 +3464,13 @@ dc-ctx: context [
                         ndx: ndx + 1
                     ]
                     print [ "------ END OF NAMED OBJECTS ------" ]
+                    show-named-objects-gui named-objs
                 ]
                 run-separate [
                     run-program-separately
                 ]
                 do-the-current-file [
                     do-current-file
-                ]
-                do-vid-object-inserter [
-                    do rejoin [ root-path %tools/vid-object-inserter.red ]
                 ]
                 run-interpreter [
                     run-and-save "run-interpreter"
@@ -3094,13 +3504,9 @@ dc-ctx: context [
                     do rejoin [ root-path %tools/red-online-search-tool.red ]
                 ]
                 
-                vid-object-inserter [
-                	do rejoin [ root-path %tools/vid-object-inserter.red ]
-                ]
-                
                 red-version [
                     request-message
-                        rejoin [ "Red Build " system/version " - " system/build/git/date "^/^/Window Offset: " mainwin/offset ]
+                        rejoin [ "Red Build " system/version " - " system/build/git/date ]
                 ]
                 change-logging-on [
                     change-logging/on
@@ -3111,15 +3517,8 @@ dc-ctx: context [
                 insert-style-use-catalog [
                     insert-style-from-catalog
                 ]
-            ][ ;-- switch/default block! - will catch all of the ins-* menu items HERE
-                if (copy/part to-string event/picked 4) = "ins-" [
-                    insert-vid-object event/picked
-                ]
-                if (copy/part to-string event/picked 10) = "style-ins-" [
-                    style-name: copy skip to-string event/picked 10
-                    object-type: style-name
-                    insert-vid-object/style object-type style-name
-                ]
+                
+            ][ ;-- switch/default 
             ]
         ]
     ]

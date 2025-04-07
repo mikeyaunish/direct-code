@@ -15,14 +15,19 @@ There is a Red command line integrated into Direct Code, as show below:
 
 image:images/red-command-line.png[]
 
-This allows you to type in any Red command. Depending on their context some values may not be visible by the Red commands that you run here. To re-run a command you  have already entered just click on the 'RED>>' button. There is a handy "Mk Btn" (Make Button) button just to the right of the command line field. It will "Make a Button" and insert the button into the current layout where Red code will run when you click on it.
+This allows you to type in any Red command. Depending on their context some values may not be visible by the Red commands that you run here. To re-run a command you  have already entered just click on the 'RED>>' button. 
 
-This is handy for testing, discoverying and experimenting with code that you need to understand.
+=== Command History
+The "..." button to the right of the RED>> command entry field allows you to recall and manage previous commands you 
+have entered. 
+
+You can also recall previous commands by using the arrow up and arrow down keys as well as the scroll wheel on the mouse.
+
 
 === Red Console
 
 The Red Console that opens up when Direct Code start is also available to type
-commands in any time you want. You won's always see the cursor in the console until you click into the console window.
+commands in any time you want. You will not always see the cursor in the console until you click into the console window.
 
 == User Script / Red Code Snippet Testing
 
@@ -51,8 +56,11 @@ You can turn on the the *system/view/debug* flag by selecting the Menu Item: *De
 
 This allows you to see some of the internal workings of Red. Helpful to find out what keys are being pressed and what events are being generated.
 
-== Show Named Objects
-You can get a listing of all of the named objects in your program by selecting the Menu Item: *Object / Show Named Objects*
+== Manage Named Objects
+You can get a listing of all of the named objects in your program by selecting the Menu Item: *Object / Manage Named Objects*. 
+image:images/object-manager.png[]
+
+The options available here are hopefully self evident. 
 
 == Debug / Print functions
 
