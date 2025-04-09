@@ -13,6 +13,13 @@ do setup: [
 area-plain-style-layout: [
     style area-plain: area extra [
 	    setup-style: [
+			[
+				input [
+					prompt "Area name" 
+					detail "Name of of the area to be created."
+					validator "object-name"
+				] 
+			]	    	
 	        [
 	            input [
 	                prompt "Size" 

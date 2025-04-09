@@ -30,11 +30,41 @@ area-has-contents-saved-style-layout: [
 						
 					]
 				]
-			]
-		] 
-		on-create [
-			if exists? face/extra/save-filename [
-				face/text: read face/extra/save-filename
+		        [
+		            input [
+		                prompt "Size" 
+		                type "pair"
+		                detail "The size of the area. Enter the size in WWxHH pair format. IE: 200x100 "
+		            ] 
+		            action [
+		                alter-facet/value 'size to-pair input-value
+		            ]
+		        ]
+		        [
+		        	input [
+		        		prompt "Disable Tabbing Between Objects?"
+		        		type "check"
+		        		detail "When tabbing is disabled pressing the tab key WON'T move you to the next GUI widget but WILL insert a tab into the text area itself."
+		        	]
+		        	action [
+		        		either input-value [
+		        			alter-facet/value 
+		        				'on-create [
+									if exists? face/extra/save-filename [
+										face/text: read face/extra/save-filename
+									]
+		        					set-flag/toggle face 'focusable
+		        				]	
+		        		][
+		        			alter-facet/value 
+		        				'on-create [
+									if exists? face/extra/save-filename [
+										face/text: read face/extra/save-filename
+									]
+		        				]	
+		        		]
+		        	]
+		        ]				
 			]
 		] 
 		on-change [

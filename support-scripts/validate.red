@@ -4,10 +4,11 @@ Red [
 ]
 set 'validate function [
     "Validates a target against a provided test"
-    target [string! file!]
+    target [string! file! none!]
     validator [block!]
     retry-message [block!]
 ] [
+    if none? target [return none]
     bind retry-message 'target
     msg: rejoin retry-message
     if file? target [
@@ -98,10 +99,13 @@ set 'validate-integer function [
     to-safe-integer value
 ]
 set 'validate-word function [
-    value [string!]
+    value [string! none!]
     /return-string
 ] [
-    if value = "" [
+    if any [
+        value = ""
+        none? value
+    ] [
         return either return-string [""] [false]
     ]
     results: validate-all value [

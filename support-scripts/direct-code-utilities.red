@@ -1024,7 +1024,7 @@ get-all-current-words: function [
     return collected
 ]
 to-safe-pair: function [
-    value [string! pair! point2D!]
+    value [string! pair! point2D! none!]
 ] [
     if (attempt-result: attempt [to-pair value]) [
         return attempt-result

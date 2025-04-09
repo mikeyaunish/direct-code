@@ -103,7 +103,7 @@ The VID Object Editor can be opened by clicking directly on a GUI object (with t
 |Alt + Right Mouse Button   |GUI Object     |Open VID Object Editor for Object 
 |CTRL + '1'    |GUI Object     |Open VID Object Editor for selected Object (positioned far left on screen)
 |   |     |
-|CTRL + "~" (tilde)  |VID Code Editor    |Open VID Object Editor for selected Object or Style
+|CTRL + `   (backtick key)  |VID Code Editor    |Open VID Object Editor for selected Object or Style
 |Middle Mouse Button        |VID Code Editor      |Open VID Object Editor for selected Object or Style
 |CTRL + Middle Mouse Button    |VID Code Editor     |Open VID Object Editor for selected Object (positioned far left on screen)
 |CTRL + '1'    |VID Code Editor     |Open VID Object Editor for selected Object (positioned far left on screen)

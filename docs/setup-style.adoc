@@ -133,7 +133,7 @@ Select the *text* object
 
 image:images/insert-text-object.png[]
 
-You should now see the VID Object Editor. (If you have *Auto Open VID Editor = ON*, as described in the first step). If you do not see the VID Object Editor, you can open it by hovering over the 'text' object in question and either pressing the middle mouse button or Alt + Tilde.
+You should now see the VID Object Editor. (If you have *Auto Open VID Editor = ON*, as described in the first step). If you do not see the VID Object Editor, you can open it by hovering over the 'text' object in question and either pressing the middle mouse button or press the Control + backtick keys.
 
 image:images/vid-object-editor.png[]
 

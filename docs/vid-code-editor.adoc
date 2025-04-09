@@ -22,5 +22,5 @@ image:images/insertion-point-object-selected.png[]
 See: xref:vid-object-editor.adoc#insertionpoint[Object Insertion Location]
 
 
-- If any text is selected in the VID Code Editor and you press the Control + Tilde keys the VID Object Editor or Style Object Editor will open up for the given object. 
+- If any text is selected in the VID Code Editor and you press the Control + backtick keys the VID Object Editor or Style Object Editor will open up for the given object. 
 

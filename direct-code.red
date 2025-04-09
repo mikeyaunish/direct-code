@@ -125,7 +125,7 @@ dc-ctx: context [
     live-update?: ""
     
     insert-tool-pinned?: false
-    set 'dc-live-update? false
+    set 'dc-live-update? #(true)
     set 'dc-voe-selected-tab 1 ;-- This is global because it needs to be read by VOE
     set 'dc-voe-size "regular"
     set 'dc-insert-tool-tab 1
@@ -814,7 +814,7 @@ dc-ctx: context [
                     'setup-size                     setup-code/size
                     'vid-size                       vid-code/size
                     'output-panel-size              output-panel/size
-                    'dc-live-update?                   dc-live-update?
+                    'dc-live-update?                dc-live-update?
                     'evo-after-insert?              evo-after-insert?
                     'insert-tool-pinned?            insert-tool-pinned?
                     'red-executable                 red-executable
@@ -1281,23 +1281,31 @@ dc-ctx: context [
 			voe-menu-handler/:lock object-name action lock-block
 		]
 	]
+ 
+	tab-away-handler: func [
+	    face [object!]
+	    event [event!]
+	][
+		if all [
+			(event/key = #"^-") ((event/type = 'key-down))
+		][
+			if all [
+				find face/extra 'on-tab-away-do-enter 
+				face/extra/on-tab-away-do-enter = 'true 
+			][
+				do-actor face none 'enter 
+			]
+			if find face/extra 'on-tab-away [
+				do bind face/extra/on-tab-away 'face
+			]			
+		]
+		return none
+	]
 
     direct-code-event-handler: func [
         face [object!]
         event [event!]
     ][
-		if all [
-			(event/key = #"^-") ((event/type = 'key-down))
-		][
-			if find face/extra 'on-tab-away [
-				do bind face/extra/on-tab-away 'face
-			]
-			if find face/extra 'on-tab-away-do-enter [
-				do-actor face none 'enter 
-			]
-		]
-
-				
         if all [ 
         	( event/key = 'F12) 
         	(event/type = 'key-up) 
@@ -1512,7 +1520,9 @@ dc-ctx: context [
             (event/key = 'right-control)
         ][
             run-and-save "control-key-change"
+            do-events
         ]
+        
         if all [ event/key = 'F11 (event/type = 'key-up) ] [
         		system/view/debug?: xor~ system/view/debug? true	
         ]
@@ -1559,15 +1569,17 @@ dc-ctx: context [
             basic-list/size/y: to-integer mainwin/size/y - 136
             active-list/size/y: to-integer mainwin/size/y - 136
             styles-vid-list/size/y: to-integer mainwin/size/y - 136
-            'done
         ]
-        return none
+        
+        none
     ]
 
     either system/build/date < 10-Oct-2023/9:48:47-06:00 [ ;-- deal with new insert-event-func refinements
         insert-event-func :direct-code-event-handler
+        insert-event-func :tab-away-handler         
     ][
         insert-event-func 'direct-code-event-handler :direct-code-event-handler ;--10-OCT-2023
+        insert-event-func 'tab-away-handler :tab-away-handler 
     ]
     
     on-spliter-init: func [face [object!] /local data v sz? op axis] [
@@ -1854,7 +1866,7 @@ dc-ctx: context [
 
             space 2x1    
 			run-source-btn: dc-button-with-image-and-tooltip 22x21 play-icon
-				with [ extra/message: "Run Script (Right Ctrl Key)"]
+				with [ extra/message: "Run Script [Right hand side Control key (by itself)]"]
 				on-click [
 					face/rate: 100:40:39
 					if face/extra/now-over? [
@@ -1866,7 +1878,7 @@ dc-ctx: context [
 				]   
 
 			edit-source-btn: dc-button-with-image-and-tooltip 22x22 edit-icon-normal
-				with [ extra/message: "Open Script with External Editor"]
+				with [ extra/message: "Edit Script with External Editor"]
 				on-click [
 					face/rate: 100:40:39
 					if face/extra/now-over? [
@@ -1956,6 +1968,7 @@ dc-ctx: context [
                             ]
                         ]
                         set 'do-red-cmd does [ ;-- do-red-cmd:
+                            lprint [ "do-red-cmd #START do-red-cmd =" red-cmd-field/text ]
 
                             remove-each entry red-cmd-field/extra/history [ entry = red-cmd-field/text ]
                             append/only red-cmd-field/extra/history (copy red-cmd-field/text)
@@ -2522,6 +2535,7 @@ dc-ctx: context [
             
 
             check-source-change: function [ keycode ][
+            	;lprint [ "check-source-change #START check-source-change keycode =" keycode  ]
                 if all [ (keycode <> 'right-control ) (keycode <> 'F5 ) ][
                     either dc-live-update? [
                         run-and-save "internal-source-change"
@@ -2742,13 +2756,9 @@ dc-ctx: context [
                 		obj: get to-word obj
                 	]
                 	
-                    ;obj-offset: get to-path (reduce [ to-word obj 'offset ])
                     obj-offset: obj/offset
-                    ;obj-size: get to-path (reduce [ to-word obj 'size ])
                     obj-size: obj/size
-            	    ;obj-image: either error? (try [ try-img: to-image get to-word obj ])[ [] ] [ try-img ]
             	    obj-image: either error? (try [ try-img: to-image obj ])[ [] ] [ try-img ]
-                    ;win-offset: get-absolute-offset (get to-word obj)
                     win-offset: get-absolute-offset obj
                     highlight-window: layout/tight compose/deep [
                         base1: base (obj-image) (obj-size)
@@ -3298,6 +3308,7 @@ dc-ctx: context [
 	                	menu-code: [ to-word action obj-name obj-position last-char selected-obj after ]		
 	                ]
 
+                	lprint [ "voe-menu-handler menu-code =" mold reduce menu-code]
                     either error? err: try/all  [
                         do bind (reduce menu-code ) 'delete-object
                         true ;-- try return value

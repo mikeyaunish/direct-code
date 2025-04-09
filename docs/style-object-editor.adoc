@@ -15,9 +15,9 @@ image:images/opening-soe-via-voe.png[]
 
 . Holding the SHIFT key down and pressing the middle mouse button while hovering over a GUI Object
 
-. Pressing the Control + Shift + Tilde keys while hovering over a GUI Object
+. Pressing the Control + Shift + backtick keys while hovering over a GUI Object
 
-. Highlighting a portion of a style code in the VID Code Editor and pressing Control + Tilde keys
+. Highlighting a portion of a style code in the VID Code Editor and pressing the Control + backtick keys
 
 == Styled Object Behaviour
 
