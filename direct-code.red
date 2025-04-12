@@ -1361,6 +1361,7 @@ dc-ctx: context [
 			(event/type = 'key-up)
 		][
 			handle-over-face event "move-object"
+			do-events
 		]
 
 		if all [
@@ -1371,6 +1372,7 @@ dc-ctx: context [
 					
 		][
 			handle-over-face event "duplicate-object"
+			do-events
 		]		
 			
 					
@@ -1380,6 +1382,7 @@ dc-ctx: context [
 			(event/type = 'key-up)		
 		][								                                       				
 			handle-over-face event "highlight-source-object"
+			do-events
 		] 
         
         if all [ 
@@ -1387,6 +1390,7 @@ dc-ctx: context [
         	event/type = 'key-up 
         ][
 			handle-over-face/lock event "highlight-source-object"
+			do-events
 
         ]		                              
 
@@ -1397,6 +1401,7 @@ dc-ctx: context [
 			(event/type = 'key-up)		
 		][	
 			handle-over-face event "move-back-1"
+			do-events
 		]		
 
 		if all [						
@@ -1406,6 +1411,7 @@ dc-ctx: context [
 			(event/type = 'key-up)		
 		][	
 			handle-over-face event "move-forward-1"
+			do-events
 		]		
 
 		if all [						
@@ -1415,6 +1421,7 @@ dc-ctx: context [
 			(event/type = 'key-up)		
 		][	
 			handle-over-face event "move-to-beginning"
+			do-events
 		]		
 
 		if all [						
@@ -1424,6 +1431,7 @@ dc-ctx: context [
 			(event/type = 'key-up)		
 		][	
 			handle-over-face event "move-to-end"
+			do-events
 		]		
 
 		
@@ -1434,6 +1442,7 @@ dc-ctx: context [
 			(event/type = 'key-up)		
 		][	
 			handle-over-face event "insert-return-before"
+			do-events
 		]							                                       				
 
 		if all [						
@@ -1443,6 +1452,7 @@ dc-ctx: context [
 			(event/type = 'key-up)				
 		][	
 			handle-over-face event "remove-return-before"
+			do-events
 		]		
 
 		if all [						
@@ -1452,6 +1462,7 @@ dc-ctx: context [
 			(event/type = 'key-up)			
 		][	
 			handle-over-face event "delete-object"
+			do-events
 		]		
 
         if all [		;-- Escape key

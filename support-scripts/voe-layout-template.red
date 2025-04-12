@@ -1383,7 +1383,12 @@ tab-panel1~: tab-panel [
         ]
         space 0x4
         image-file-requester~: dot-btn [
-            res: request-file/title/file "Select an image file" (to-red-file get-current-dir)
+            image-dir: either image-field~/text = "" [
+                to-red-file get-current-dir
+            ] [
+                to-valid-file image-field~/text
+            ]
+            res: request-file/title/file "Select an image file" image-dir
             if res [
                 modify-source vid-code-test/text target-object-name~ [file!] (to-valid-file res)
                 image-field~/text: mold to-valid-file res

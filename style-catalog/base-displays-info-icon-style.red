@@ -30,10 +30,8 @@ base-displays-info-icon-style-layout: [
                     ]
                 ][
                     action [
-                    	print [ "input-values =============================================== " mold input-values ]
-                        box-state: either input-values/2 [ #(true) ] [ #(false) ]
                         alter-facet/value 'with compose/deep [ 
-                            extra/box: (box-state)
+                            extra/box: (either input-values/2 [ #(true) ] [ #(false) ])
                             extra/message: (input-values/1)
                         ]  
                     ]

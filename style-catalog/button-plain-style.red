@@ -15,7 +15,7 @@ button-plain-style-layout: [
 	    setup-style: [
 	        [
 	            input [
-	                prompt "Text string" 
+	                prompt "Button label" 
 	                detail "The text that will display on the button."
 	            ] 
 	            action [
