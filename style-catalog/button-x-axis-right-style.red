@@ -100,6 +100,8 @@ button-x-axis-right-style-layout: [
 		    line 11x10 11x14
 		    
         ]
+   f1: field 
+   button-x-axis-right1: button-x-axis-right with [extra/output-field: 'f1]
 ]
 
 ;Direct Code Show Window source marker - DO NOT MODIFY THIS LINE OR THE NEXT LINE!

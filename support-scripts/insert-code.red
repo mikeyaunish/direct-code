@@ -17,14 +17,12 @@ set 'insert-code function [
     target-obj [string! none!] {object name to do insertion relative to. none! indicates at top (after styles)}
     /after "insert-after target-obj"
     /end-of-script "beyond everything including returns etc.."
+    /style "The code is style code"
     /local prefix suffix
 ] [
     code-copy: copy code
     trim/head/tail code-copy
-    if all [
-        (none? target-obj)
-        not end-of-script
-    ] [
+    if style [
         insert-pos: second (tail-position-of-styles vid-code/text)
         insert-pos-value: pick vid-code/text insert-pos
         suffix: ""

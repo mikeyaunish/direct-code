@@ -121,6 +121,8 @@ dc-ctx: context [
     current-path: does [ first split-path dc-reactor/current-file ]
     setup-size: 752x200
     vid-size: 752x232
+    splith-size: 752x6
+
     output-panel-size: 987x526
     live-update?: ""
     
@@ -1066,6 +1068,7 @@ dc-ctx: context [
         setup-size: either all-to-logic loaded-settings/setup-size [ loaded-settings/setup-size ][ setup-size ]
         selected-object-offset: to-pair reduce [ 95 ( setup-size/y + 83 )]
         vid-size: either all-to-logic loaded-settings/vid-size [ loaded-settings/vid-size ][ vid-size ]
+        splith-size: to-pair reduce [to-integer vid-size/x 6 ]
         dc-voe-selected-tab: either all-to-logic loaded-settings/dc-voe-selected-tab [ loaded-settings/dc-voe-selected-tab ][ 1 ]
         dc-voe-size: either all-to-logic loaded-settings/dc-voe-size [ loaded-settings/dc-voe-size ][ 1 ]
         dc-insert-tool-tab: either all-to-logic loaded-settings/dc-insert-tool-tab [ loaded-settings/dc-insert-tool-tab ][ 1 ]
@@ -1595,6 +1598,9 @@ dc-ctx: context [
     
     on-spliter-init: func [face [object!] /local data v sz? op axis] [
     	face/extra/offset: face/offset 
+    	if face/extra/bounds-box <> 'none [
+    		append face/options reduce [ 'bounds face/extra/bounds-box ]
+    	]
         face/extra/fixedaxis: select [x y x] face/extra/axis: axis: either face/size/x < face/size/y ['x] ['y]
         if not block? data: face/data [exit]
         forall data [
@@ -1634,6 +1640,7 @@ dc-ctx: context [
 	        	'auto-sync? none 
 	        	'axis none 
 	        	'fixedaxis none
+	        	'bounds-box none
 	        ]
             on-drag-start [
             	face/extra/offset: face/offset 
@@ -2056,8 +2063,7 @@ dc-ctx: context [
 
             pad 0x4
             ;-- horizontal splitter
-            ;-- splith: split-style 752x6 data [setup-code/size vid-label/offset zero-out-selected-obj/offset vid-code/offset vid-code/size selected-object-label/offset selected-object-field/offset ]
-            splith: split-style 752x6 data [setup-code/size vid-label/offset vid-code/offset vid-code/size selected-object-panel/offset ]
+            splith: split-style splith-size data [setup-code/size vid-label/offset vid-code/offset vid-code/size selected-object-panel/offset ]
             across
             base 510x35 transparent
             return
@@ -3044,25 +3050,6 @@ dc-ctx: context [
 					]
 					
                 ]
-                
-            	set 'zdelete-vid-object function [ ;-- delete-vid-object: func 
-            		obj-name [string!]
-            	][
-            		obj-info: get-object-source/whitespace/position/with-newline obj-name vid-code/text
-            		one-char-back: pick vid-code/text (obj-info/3/x - 1)
-            		;one-char-back: " "
-            		skip-amt: either one-char-back = #"^/" [ 2 ][ 1 ]
-            		 
-;            			either is-whitespace? one-char-back [
-;            				1
-;            			][
-;            				1
-;            			]	 
-;            		]
-            		full-src: copy/part ( skip vid-code/text obj-info/3/x - skip-amt ) (obj-info/3/y - obj-info/3/x + skip-amt)
-            		remove/part ( skip vid-code/text obj-info/3/x - 1 ) (obj-info/3/y - obj-info/3/x + 1)
-            		return reduce [ full-src obj-info/3/x ]
-            	]
             	
             	delete-object: func [ 
             		obj-name 
@@ -3338,7 +3325,12 @@ dc-ctx: context [
 
             load-direct-code dc-reactor/current-file
         ]
-        splitv: split-style 6x100 data [pan/size splith/size setup-code/size vid-code/size output-panel/size output-panel/offset ]
+
+        do [ splitv-bounds: make object! [min: 759x4 max: 4000x4000 ] ]
+        splitv: split-style 6x100 
+        	data [pan/size splith/size setup-code/size vid-code/size output-panel/size output-panel/offset ]
+        	with [ extra/bounds-box: splitv-bounds ]
+        		
         output-panel: panel output-panel-size 
         	data [ 'dc-output-panel ]	
     ]

@@ -37,6 +37,7 @@ set 'insert-style-code function [
     style-name [string!]
     style-source [string!]
     /scenario "style inserted is part of a scenario"
+    /after
     /end-of-script
 ] [
     current-styles: get-styles to-block vid-code/text
@@ -45,7 +46,7 @@ set 'insert-style-code function [
         if not scenario [
             style-source: remove-setup-style style-name style-source
         ]
-        insert-code/:end-of-script style-source none
+        insert-code/style style-source none
     ]
 ]
 set 'get-youngest-setup-style-data function [
@@ -92,6 +93,14 @@ set 'insert-styled-object function [
     /after
     /end-of-script
 ] [
+    capture-call reduce [
+        'insert-styled-object "function"
+        'style-name style-name
+        'target-obj target-obj
+        '~scenario scenario
+        '~after after
+        '~end-of-script end-of-script
+    ]
     before-change-index: vid-code-undoer/action-index
     if not style-and-source: get-catalog-style/tree-block style-name [
         request-message rejoin ["Style name: " style-name " does not exist in the style catalog"]
@@ -105,7 +114,7 @@ set 'insert-styled-object function [
     ]
     foreach [style-name style-source] style-and-source [
         object-type: get-object-style to-block style-source
-        insert-style-code/:scenario style-name style-source
+        insert-style-code/:scenario/:end-of-script/:after style-name style-source
         if not parent-child-style? [
             insert-vid-object/style/named/:catalog/:after/:end-of-script object-type target-obj style-name style-name
         ]
@@ -114,7 +123,7 @@ set 'insert-styled-object function [
         style-name: first back back tail style-and-source
         last-source: back tail style-and-source
         object-type: get-object-style last-source/1
-        inserted-object-name: insert-vid-object/style/named/:catalog/no-setup object-type target-obj style-name style-name
+        inserted-object-name: insert-vid-object/style/named/:catalog/:after/no-setup object-type target-obj style-name style-name
         result: run-youngest-setup-style style-name inserted-object-name
         if not result [
             back-out-vid-changes before-change-index
