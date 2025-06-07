@@ -518,7 +518,7 @@ request-setup-style: function [
 ]
 set 'alter-facet function [
     {alter-facet is a wrapper for modify-facet, but it provides source-code and object-name to the modify-facet function}
-    facet [word!] {lit-word name of the facet to alter. LIST OF FLAG FACETS: all-over anti-alias bold bottom center cleartype disabled focus hidden italic left loose middle no-border no-wrap password right strike top tri-state true underline wrap. WARNING: Some flags are mutually exclusive, you will need to deal with that. FACETS THAT NEED VALUES: color data date default-string draw extra file font-color font-name font-size hint layout-block name offset on-<actor> percent rate react select size text url with}
+    facet [word!] {lit-word name of the facet to alter. LIST OF FLAG FACETS: all-over anti-alias bold bottom center cleartype disabled focus hidden italic left loose middle no-border no-wrap password right strike top tri-state true underline wrap. WARNING: Some flags are mutually exclusive, you will need to deal with that. FACETS THAT NEED VALUES: color data options date default-string draw extra file font-color font-name font-size hint layout-block name offset on-<actor> percent rate react select size text url with}
     /value new-value [any-type!] {value of facets that aren't FLAGS. Ignored if using the /delete refinement.}
     /delete "Removes the facet indicated."
     /extern dc-alter-facet-object-name vid-code

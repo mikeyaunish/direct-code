@@ -634,13 +634,6 @@ dc-ctx: context [
         ]
     ]
 
-    set 'get-file-base-name function [
-        filename [file!]
-    ][
-        return to-string first split (second (split-path filename)) "."
-    ]
-
-
     set 'dc-load-direct-code load-direct-code: function [
         filename [ file! ]
         /extern dc-code-version
@@ -1861,6 +1854,7 @@ dc-ctx: context [
 					]	            	
 	                load-and-run recent-menu/get-item 1
 	            ]
+	            on-create [	face/flags: none ]
             space 1x1
             check-for-file-change: base 40x24 blue font-size 12 bold center white "File: " rate 999:00:00 ;-- hold here until we turn it on
                 [
@@ -1893,7 +1887,8 @@ dc-ctx: context [
 						do-events
 					]
 					run-and-save "play-icon"
-				]   
+				]
+				on-create [	face/flags: none ]   
 
 			edit-source-btn: dc-button-with-image-and-tooltip 22x22 edit-icon-normal
 				with [ extra/message: "Edit Script with External Editor"]
@@ -1906,7 +1901,8 @@ dc-ctx: context [
 					]
                     monitor-file-change either check-for-file-change/rate = 999:00:00 [ true ] [ false ]
                     editor/monitor dc-reactor/current-file
-				]   
+				]
+				on-create [	face/flags: none ]   
 				             
             space 6x4
             red-run-btn: dc-button-with-tooltip 50x24 right center font-size 10  " RED>> " bold
@@ -1920,6 +1916,7 @@ dc-ctx: context [
 					]	            	
 	                do-red-cmd
 	            ]
+	            on-create [	face/flags: none ]
 	            
             space 0x4
             red-cmd-field: field font-size 11 325x24
@@ -1967,6 +1964,7 @@ dc-ctx: context [
                             face/text: copy first back tail face/extra/history
                         ]
                     ]
+                    face/flags: none 
                     do [
                         set 'requester-on-field function [field-name [word!] ] [
                             history: get to-path reduce [ field-name 'extra 'history ]
@@ -2025,9 +2023,11 @@ dc-ctx: context [
                     ]
                 ]
             space 0x4
-            dot-button: button "..." 20x24 [
-                requester-on-field 'red-cmd-field
-            ]
+            dot-button: button "..." 20x24 
+            	on-click [
+                	requester-on-field 'red-cmd-field
+            	]
+            	on-create [	face/flags: none ]
             return
             base "Setup Code (before layout)" 200x24  snow bottom left
             base 250x10 transparent
@@ -2605,8 +2605,8 @@ dc-ctx: context [
                         (show-window-code/text = none)
                     ][
                         replace show-window-code/text
-                            (a: rejoin [ " " (get-file-base-name dc-reactor/current-file) "-layout" ])
-                            (b: rejoin [ " " (get-file-base-name second split-path new-filename) "-layout"])
+                            (a: rejoin [ " " (get-file-basename dc-reactor/current-file) "-layout" ])
+                            (b: rejoin [ " " (get-file-basename second split-path new-filename) "-layout"])
                     ]
 
                 ][

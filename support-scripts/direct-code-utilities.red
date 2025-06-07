@@ -838,6 +838,9 @@ string-to-valid-type: function [
         "date" [
             return load val
         ]
+        "file" [
+            return load val
+        ]
         "error" [
             request-message/size rejoin [{Unable to turn the string below into a valid data format.^/} form val] 600x400
             return ""

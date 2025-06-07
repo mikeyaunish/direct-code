@@ -89,7 +89,7 @@ query-vid-object-ctx: context [
         "time" [["rate"]]
         "block" [[
             "default"
-            "font" "with" "actors" "extra" "do" "data" "draw" "para" "react"
+            "font" "with" "actors" "extra" "do" "data" "draw" "para" "react" "options"
             "on-down" "on-up" "on-mid-down" "on-mid-up" "on-alt-down" "on-alt-up" "on-aux-down"
             "on-aux-up" "on-drag-start" "on-drag" "on-drop" "on-create" "on-click" "on-dbl-click" "on-over"
             "on-move" "on-resize" "on-moving" "on-resizing" "on-wheel" "on-zoom" "on-pan"

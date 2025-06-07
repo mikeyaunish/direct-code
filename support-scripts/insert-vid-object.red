@@ -72,6 +72,7 @@ set 'insert-vid-object function [
         h5 [(obj-set-word) (to-word object-type) (obj-name)]
         rich-text [(obj-set-word) (to-word object-type) "Hello Red World" data [1x17 0.0.255 italic 7x3 255.0.0 bold 24 underline]]
         timer [(obj-set-word) (to-word object-type) (obj-name) 210.210.210]
+        table [(obj-set-word) (to-word object-type) 400x200 data [["First Name" "Last Name" "Age"] ["Joe" "Blow" 34]]]
         iso-info [(obj-set-word) (to-word object-type)]
         iso-question [(obj-set-word) (to-word object-type)]
         iso-warning [(obj-set-word) (to-word object-type)]

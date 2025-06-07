@@ -38,6 +38,7 @@ modify-facet-ctx: context [
         file [[file!] new-value]
         draw [[word! "draw"] new-value]
         layout-block [[block!] new-value]
+        options [[word! "options"] new-value]
         data [[word! "data"] new-value]
         select [[word! "select"] new-value]
         true [[word! "true"] 'true]
@@ -54,7 +55,7 @@ modify-facet-ctx: context [
         "Modifies the source code provided."
         source-code [string!] "Full source of code you want to alter"
         object-name [string!] "Object name to alter"
-        facet [word!] {lit-word name of the facet to alter. LIST OF FLAG FACETS: all-over anti-alias bold bottom center cleartype disabled focus hidden italic left loose middle no-border no-wrap password right strike top tri-state true underline wrap. WARNING: Some flags are mutually exclusive, you will need to deal with that. FACETS THAT NEED VALUES: color data date default-string draw extra file font-color font-name font-size hint layout-block name offset on-<actor> percent rate react select size text url with}
+        facet [word!] {lit-word name of the facet to alter. LIST OF FLAG FACETS: all-over anti-alias bold bottom center cleartype disabled focus hidden italic left loose middle no-border no-wrap password right strike top tri-state true underline wrap. WARNING: Some flags are mutually exclusive, you will need to deal with that. FACETS THAT NEED VALUES: color data options date default-string draw extra file font-color font-name font-size hint layout-block name offset on-<actor> percent rate react select size text url with}
         /value new-value [any-type!] {value of facets that aren't FLAGS. Ignored if using the /delete refinement.}
         /delete "Removes the facet indicated."
         /extern dc-actor-list facet-modify-map

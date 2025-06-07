@@ -39,7 +39,7 @@ dc-modify-source: context [
             bold italic underline strike wrap no-wrap no-border
             font-name font-size font-color font
             hint image draw
-            data select default rate
+            data select default rate options
             react url!
             all-over tri-state
             block!
@@ -163,7 +163,7 @@ dc-modify-source: context [
                 insert (skip source-code (obj-cdta/1/token/x - 1)) reduce ["at" " " new-value " "]
             ] [
                 pre-value-list: [
-                    "at" "font-color" "font-name" "font-size" "rate" "select" "hint" "default" "data" "extra" "with"
+                    "at" "font-color" "font-name" "font-size" "rate" "select" "hint" "default" "data" "extra" "with" "options"
                 ]
                 insert-chunk: find-insert-position obj-cdta obj-name target
                 insert-pos: insert-chunk/token
