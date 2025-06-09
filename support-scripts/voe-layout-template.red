@@ -2686,7 +2686,6 @@ tab-panel1~: tab-panel [
         ]
     ]
     source-to-view-fields: function [
-        "v3 from %edit-vid-object.red"
         object-name [string!]
         object-type [word!]
         source-code [string!]
@@ -2737,6 +2736,7 @@ tab-panel1~: tab-panel [
             size-starting-value: [(starting-size)]
         ]
         foreach [key value] object-data [
+            if (to-word key) = 'options [continue]
             value: first value
             field-name: rejoin [key "-field" identifier]
             switch/default to-string (type? value) [

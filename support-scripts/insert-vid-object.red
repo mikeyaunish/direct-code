@@ -10,7 +10,7 @@ set 'clear-vid-code-selected does [
 set 'insert-vid-object function [
     {V2 .Inserts a given object type into the current layout. By default "insert-before" selected object or at end of vid-code script.}
     obj-type [string! word!] {Object type that determines object naming prefix as well}
-    target-object [string! none!] {Object name to use as reference point""}
+    target-object [string! none!] "Object name to use as reference point"
     /with-on-click on-click-code [block!]
     /with-text text-string [string!]
     /with-offset offset-pos [pair!]
