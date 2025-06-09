@@ -93,14 +93,6 @@ set 'insert-styled-object function [
     /after
     /end-of-script
 ] [
-    capture-call reduce [
-        'insert-styled-object "function"
-        'style-name style-name
-        'target-obj target-obj
-        '~scenario scenario
-        '~after after
-        '~end-of-script end-of-script
-    ]
     before-change-index: vid-code-undoer/action-index
     if not style-and-source: get-catalog-style/tree-block style-name [
         request-message rejoin ["Style name: " style-name " does not exist in the style catalog"]
