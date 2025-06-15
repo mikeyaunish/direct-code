@@ -58,6 +58,7 @@ table-for-data-file-scenario-layout: [
 						]
 						alter-facet/value 'layout-block
 						compose/deep [
+							origin 2x2
 							(to-set-word unique-obj-name ) table (to-pair input-values/1)
 								(options-block)
 								data (to-file input-values/2)
@@ -68,6 +69,7 @@ table-for-data-file-scenario-layout: [
 			]
 		]
 	table-for-data-file1: table-for-data-file [
+		origin 2x2
 		table1: table 400x100 data []
 	]
 			

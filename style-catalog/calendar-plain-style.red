@@ -20,7 +20,10 @@ calendar-plain-style-layout: [
 	                detail "Enter the date that will be highlighted on the calendar"
 	            ] 
 	            action [
-	                alter-facet/value 'date to-valid date! input-value
+	            	if input-value [
+	            		alter-facet/value 'date to-valid date! input-value	
+	            	]
+	                
 	            ]
 	        ]
 	    ]

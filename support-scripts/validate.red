@@ -91,6 +91,7 @@ set 'validate-pair function [
 set 'validate-date function [
     value
 ] [
+    if none? value [return none]
     to-string to-date load to-string value
 ]
 set 'validate-integer function [

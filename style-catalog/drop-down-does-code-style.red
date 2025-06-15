@@ -2,7 +2,6 @@ Red [
 	Title: "drop-down-does-code-style.red"
 	Needs: View
 	Comment: "Generated with Direct Code"
-	Generator: "add-to-style-catalog"
 ]
 
 do setup: [
@@ -20,16 +19,15 @@ drop-down-does-code-style-layout: [
 		on-change [
 			do-selected face
 		]
-	 
 		data [
-			"Hello World" [
-				print "Test Running"
+			"Hello, World" [
+				print "Hello, World"
 			]
-			"Test #2" [
-				print "Test #2"
+			"Say Goodbye" [
+				print "Say goodbye"
 			]
 		] 
-		select 1
+		select 1		
 	drop-down-does-code1: drop-down-does-code
 ]
 

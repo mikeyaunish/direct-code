@@ -2,7 +2,7 @@ Red [
 	title: "table-template"
 	author: [@toomasv  custom fork by: @mikeyaunish]
 	file: %table-template.red
-	date: 6-JUNE-2025
+	date: 15-JUNE-2025
 ]
 
 #include %style.red
@@ -292,7 +292,7 @@ tbl: [
 			face/freeze-point: 0x0
 			if face/frozen/y > 0 [face/freeze-point/y: face/draw/(face/frozen/y)/1/7/y]
 			if face/frozen/x > 0 [face/freeze-point/x: face/draw/1/(face/frozen/x)/7/x]
-			face/grid-size: face/size - face/freeze-point
+			face/grid-size: face/size - face/freeze-point - face/scroller-width
 			face/freeze-point
 		]
 
@@ -327,7 +327,9 @@ tbl: [
 						sz: sz + s: get-size face dim r
 						sz <= face/grid-size/:dim
 					]
-				][j: j + 1]
+				][
+					j: j + 1
+				]
 				face/last-page/:dim: j
 			]
 		]
@@ -2100,6 +2102,7 @@ tbl: [
 			pos0: face/scroller/:dim/position
 			min-pos: face/top/:dim + 1
 			max-pos: face/scroller/:dim/max-size - face/last-page/:dim + pick [2 1] face/grid-offset/:dim > 0
+			
 			mid-pos: face/scroller/:dim/position + steps
 			pos1: face/scroller/:dim/position: max min-pos min max-pos mid-pos
 			pos1 - pos0
@@ -2466,7 +2469,8 @@ tbl: [
 				end       [as-pair face/grid/x 0]        ;TBD
 			]
 
-
+			                           ;-- (min (face/active/y + 1) face/total/y) > min (face/current/y + face/max-usable/y - face/frozen/y) face/total/y
+			
 
 			either all [face/active step] [
 				case [
