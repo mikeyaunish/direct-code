@@ -2,7 +2,7 @@ Red [
 	title: "table-template"
 	author: [@toomasv  custom fork by: @mikeyaunish]
 	file: %table-template.red
-	date: 15-JUNE-2025
+	date: 16-JUNE-2025
 ]
 
 #include %style.red
@@ -23,7 +23,7 @@ tbl: [
 	col-index: 			make block! 1
 	full-height-col:	0
 	on-border?:         0x0
-	tbl-editor: 		copy []
+	tbl-editor: 		#(none)
 	
 	marks: 				make block! 1
 	anchor: 			make block! 1
@@ -1005,7 +1005,7 @@ tbl: [
 		]
 
 		use-editor: function [face [object!] event [event! none!]][
-			either face/tbl-editor <> [] [
+			either face/tbl-editor [
 				if tbl-editor/visible? [
 					update-data tbl-editor face 	;Make sure field is updated according to correct type
 					face/draw: face/draw     		;Update draw in case we edited a field and didn't enter
@@ -1023,7 +1023,6 @@ tbl: [
 			ofs:  get-cell-offset face cell
 			either col <> 0 [
 				;if auto [col: col + 1]
-				;-- tbl-editor/extra/table: face                      ;Reference to table itself
 				face/tbl-editor/extra/table: face                      ;Reference to table itself
 				txt: switch/default face/col-type/:col [
 					image! [
@@ -1050,7 +1049,7 @@ tbl: [
 
 		hide-editor: function [face [object!]] [
 			if all [
-				face/tbl-editor <> []
+				face/tbl-editor 
 				face/tbl-editor/visible?
 			] [face/tbl-editor/visible?: no]
 		]
@@ -2468,10 +2467,7 @@ tbl: [
 				home      [as-pair negate face/grid/x 0] ;TBD
 				end       [as-pair face/grid/x 0]        ;TBD
 			]
-
-			                           ;-- (min (face/active/y + 1) face/total/y) > min (face/current/y + face/max-usable/y - face/frozen/y) face/total/y
 			
-
 			either all [face/active step] [
 				case [
 					; Active mark beyond edge
@@ -2526,9 +2522,12 @@ tbl: [
 									y <> 'done
 									(min (face/active/y + 1) face/total/y) > min (face/current/y + face/max-usable/y - face/frozen/y) face/total/y
 								]
-							all [key = 'up      face/frozen/y + 1    = face/pos/y y <> 'done]
+							all [key = 'up face/frozen/y + 1 = face/pos/y y <> 'done]
 							all [find [page-up page-down] key face/pos/y > face/frozen/y y <> 'done]
+							;-- all [find [page-up page-down] key face/pos/y >= face/frozen/y y <> 'done]
 						][
+							
+							
 							df: scroll face 'y step/y
 							switch key [
 								page-up   [if step/y < step/y: df [face/pos/y: face/pos/y - face/grid/y - step/y]]
