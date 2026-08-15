@@ -2,11 +2,11 @@ Red [
 	Title: "red-online-search-tool.red"
 	Needs: View
 	Comment: "Generated with Direct Code"
-	Date: 17-Mar-2024
+	Date: 22-JUN-2025
 ]
 
 do setup: [
-    num-of-search-fields: 5
+    num-of-search-fields: 6
     run-search: does [
         ndx: 1
         loop num-of-search-fields [
@@ -80,62 +80,69 @@ red-online-search-tool-layout: [
                 save face/extra/save-filename face/data
             ]
         ] 
-    at 6x9 base1: base "Github Searches (requires Github login to work well)" 390x128 210.210.210 
-        font-color 0.0.0 center top wrap font-size 12 
-    return
-	search-1: check-saved "Github Search of: Red Documents" 
-        with [
-        	extra/search-format: [ {https://github.com/search?q=repo%3Ared%2Fdocs+path%3A%2F} git-language {%2F%2F+} search-field/text { &type=code} ]
-        	extra/save-name: "search-1"
-        ] 
-        
-    return
-    search-2: check-saved {Github Search of: ALL "*.red" source code} 
-        with [
-        	extra/search-format: [{https://github.com/search?q=} search-field/text {+path%3A*.red+language%3ARed+&type=code}]
-        	extra/save-name: "search-2"
-        ]
-    return
-    
-	label1: label "Language:" 77x23 font-size 11
-	space 1x1
-    drop-down1: drop-down 
-        data ["English" "Chinese" "French" "Czech" "Japanese"] 
-        extra [ save-filename: %ROST-language.data ]
-        select 1
-        on-create [
-            either exists? face/extra/save-filename [
-                face/selected:  index? find face/data load face/extra/save-filename
-            ][
-                save face/extra/save-filename pick face/data face/selected 
-            ]
-            git-language: select git-languages face/text
-        ]
-        on-change [
-            git-language: select git-languages face/text
-            save face/extra/save-filename pick face/data face/selected
-        ]
-    space 4x4
-    return
-	search-3: check-saved "Google Search of: www.red-lang.org" 
+    space 2x2
+    group-box1: group-box "GitHub Search" 389x171 [
+    			space 2x2
+		text1: text "(Requires GitHub login to work well)" font-size 12
+		return
+		search-1: check-saved "Red Documents" 
+		with [
+			extra/search-format: [ {https://github.com/search?q=repo%3Ared%2Fdocs+path%3A%2F} git-language {%2F%2F+} search-field/text { &type=code} ]
+			extra/save-name: "search-1"
+		]
+		return
+		search-2: check-saved {ALL "*.red" source code} 
+		with [
+			extra/search-format: [{https://github.com/search?q=} search-field/text {+path%3A*.red+language%3ARed+&type=code}]
+			extra/save-name: "search-2"
+		]
+		return
+		search-3: check-saved {Red GISTs} 
+		with [
+			extra/search-format: [{https://gist.github.com/search?q=} search-field/text {+language%3ARed}]
+			extra/save-name: "search-6"
+		]        
+		return
+		label1: label "Language:" 77x23 font-size 11
+		drop-down1: drop-down 
+		data ["English" "Chinese" "French" "Czech" "Japanese"] 
+		extra [ save-filename: %ROST-language.data ]
+		select 1
+		on-create [
+		    either exists? face/extra/save-filename [
+		        face/selected:  index? find face/data load face/extra/save-filename
+		    ][
+		        save face/extra/save-filename pick face/data face/selected 
+		    ]
+		    git-language: select git-languages face/text
+		]
+		on-change [
+		    git-language: select git-languages face/text
+		    save face/extra/save-filename pick face/data face/selected
+		]
+	]
+	return
+	group-box2: group-box "Google Search" 389x113 [
+		space 2x2
+		search-4: check-saved "www.red-lang.org"
         with [
         	extra/search-format: [ {https://www.google.ca/search?q=} search-field/text {+site%3Ahttps%3A%2F%2Fwww.red-lang.org%2F} ]
         	extra/save-name: "search-3"
         ]
-        
-    return
-    search-4: check-saved "Google Search of: Helpin.red" 
+    	return
+    	search-5: check-saved "www.Helpin.red" 
         with [
         	extra/search-format: [{https://www.google.ca/search?q=} search-field/text {+site%3Ahttps%3A%2F%2Fhelpin.red%2F}]
         	extra/save-name: "search-4"
         ]
-    return
-    search-5: check-saved "Google Search of: www.red-by-example.org" 
+    	return
+    	search-6: check-saved "www.red-by-example.org" 
         with [
         	extra/search-format: [{https://www.google.ca/search?q=} search-field/text {+site%3A+www.red-by-example.org} ]
         	extra/save-name: "search-5"
         ]
-    return 
+	]
+    return
     toggle1: toggle "Select ALL Sources" 389x23 on-change [
         either face/data [
             face/text: "ALL Sources Selected" 

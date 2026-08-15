@@ -99,7 +99,12 @@ system/view/VID/styles/request-list-picker: [
                 either none? text-list-face/selected [
                     face/text: none
                 ] [
-                    face/text: copy pick text-list-face/data index-val
+                    either sel-item: pick text-list-face/data index-val [
+                        face/text: sel-item
+                    ] [
+                        text-list-face/selected: 0
+                        return none
+                    ]
                 ]
                 text-list-face/selected: index-val
             ]
@@ -167,7 +172,7 @@ system/view/VID/styles/request-list-picker: [
     ]
 ]
 request-list-enhanced: func [
-    {Asks user to pick from a text data list. The list will automatically be sorted.}
+    {Asks user to pick from a text data list. The list will automatically be sorted.V4}
     message [string!]
     data-block [block!]
     /size list-size [pair!]
@@ -186,6 +191,7 @@ request-list-enhanced: func [
     spacer-size: to-pair reduce [(list-size/x - 109) 23]
     view/flags/options [
         title "Select"
+        on-close [results: none]
         style search-icon: base 23x23 220.220.220
         draw [
             pen 0.0.0
@@ -219,7 +225,7 @@ request-list-enhanced: func [
         space 0x0
         ds1: request-list-picker picker-size focus with [extra/data-source: "tlist"]
         on-enter [
-            results: face/text
+            results: either face/text = "" [none] [face/text]
             unview
         ]
         space 10x10

@@ -85,3 +85,5 @@ context [
 	]
 	;set '~ make op! func [str rex][re str rex]
 ]
+
+~: make op! func [a b][re a b]

@@ -65,11 +65,16 @@ can edit a spreadsheet cell.
 [options="header,footer"]
 |=======================
 |Shortcut Key   | Action
-|F2             | Move object to Insertion Point
-|F3             | Set object as Insertion Point
-|F4             | Set object as Insertion Point and LOCK ON.
+|Ctrl + Shift + F2             | Move object to Insertion Point
+|Ctrl + Shift + F3             | Set object as Insertion Point
+|Ctrl + Shift + F4             | Set object as Insertion Point and LOCK ON.
+|Ctrl + Shift + F6             | Do the current file (attached to dev. env.)
+|Ctrl + Shift + F7             | Run User Script 
+|Ctrl + Shift + F8             | Turn global loggind on/off
+|Ctrl + Shift + F9             | Run the current file (separate from dev. env.)
+|Ctrl + Shift + F11            | Turn system/view/debug? logging on/off
 |ESC Key        | Clear Insertion Point
-|Ctrl + Shift + 8 (Asterisk Key)          | Duplicate object to Insertion Point
+|Ctrl + Shift + 8 (Asterisk '*' Key)          | Duplicate object to Insertion Point
 |Ctrl + Shift + Minus Key   | Delete object
 |Ctrl + Shift + Enter       | Add a VID `return` before this object
 |Ctrl + Shift + Backspace   | Remove a VID `return` before this object

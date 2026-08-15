@@ -2,6 +2,26 @@ Red [
 	Title: "direct-code-utilities.red"
 	Comment: "Imported from: <root-path>%experiments/direct-code-utilities/direct-code-utilities.red"
 ]
+clear-screen: does [
+    do bind [
+        full?: no
+        top: 1
+        scroll-y: 0
+        line-y: 0
+        line-cnt: 0
+        screen-cnt: 0
+        line-pos: 1
+        clear lines
+        clear nlines
+        clear heights
+        clear selects
+        gui-console-ctx/scroller/page-size: page-cnt
+        gui-console-ctx/scroller/max-size: page-cnt - 1
+        gui-console-ctx/scroller/position: 0
+    ] gui-console-ctx/terminal
+    system/view/platform/redraw gui-console-ctx/console
+    ()
+]
 closure: func [
     vars [block!] "Values to close over, in spec block format"
     spec [block!] "Function spec for closure func"
@@ -160,15 +180,6 @@ set 'get-catalog-filenames function [
                 keep file
             ]
         ]
-    ]
-]
-split-filename: function [
-    {returns a block containing [ <base-name-of-file> <file-extension> ] }
-    filename [file!]
-] [
-    return reduce [
-        to-string first split (second (split-path filename)) "."
-        to-string second split (second (split-path filename)) "."
     ]
 ]
 find-unused-filename: function [
@@ -364,34 +375,6 @@ duplicates: function [
     ]
     return results
 ]
-get-absolute-offset: function [
-    face
-] [
-    offset-adjust: [6x6 8x31 6x26 8x51]
-    adjust-index: 1
-    adjustment: 0
-    results: face/offset
-    target: face/parent
-    until [
-        results: results + target/offset
-        if target/type = 'window [
-            if not find target/flags 'no-title [adjust-index: adjust-index + 1]
-            if not none? target/menu [adjust-index: adjust-index + 2]
-            adjustment: (pick offset-adjust adjust-index)
-        ]
-        target: target/parent
-        (target/type = 'screen)
-    ]
-    return (results + adjustment)
-]
-upsert: function [
-    {If a value is not found in a series, append it. Returns true if added}
-    series [series!]
-    value
-    /only "Append block types as single values"
-] [
-    not none? unless find/:only series :value [insert/:only series :value]
-]
 set 'trim-non-char function [str [string!]] [
     trim/with str trim/with copy str {abcdefghijklmnopqrstuvwxyz~ABCDEFGHIJKLMNOPQRSTUVWXYZ -1234567890:./=?&%+$#_[]!*`}
 ]
@@ -477,13 +460,6 @@ if-word-to-datatype: function [value] [
     if value = 'false [return false]
     if value = 'none [return none]
     return value
-]
-between?: func [val apair] [
-    return either all [(val >= apair/x) (val <= apair/y)] [
-        true
-    ] [
-        false
-    ]
 ]
 all-whitespace?: function [
     series
@@ -1041,8 +1017,9 @@ to-safe-pair: function [
     return 0x0
 ]
 to-safe-integer: function [
-    value
+    value [any-type!]
 ] [
+    if unset? :value [return 0]
     if (attempt-result: attempt [to-integer value]) [
         return attempt-result
     ]
@@ -1285,7 +1262,7 @@ get-object-name: func [
 string-is-pair?: function [
     str [string!] "string to test"
 ] [
-    nums: charset "-0123456789"
+    ` nums: charset "-0123456789"
     parse str [any nums "x" any nums]
 ]
 string-is-word?: function [
@@ -1371,81 +1348,12 @@ find-in-array-with: function [
     ]
     return none
 ]
-find-in-array-at: function [
-    blk [any-type!]
-    at-loc [integer!] "skip amount into each element of the array"
-    find-this
-    /with-index
-    /within "will search within a block"
-    /every
-    /last
-] [
-    collected: copy []
-    if ((array-len: length? blk) < 1) [
-        return false
-    ]
-    either last [
-        array: copy blk
-        reverse array
-    ] [
-        array: blk
-    ]
-    ndx: 1
-    real-index: func [index] [either last [(array-len - (index - 1))] [index]]
-    either within [
-        finder: func [to-find] [
-            find (pick i at-loc) to-find
-        ]
-    ] [
-        finder: func [to-find] [
-            to-find = (pick i at-loc)
-        ]
-    ]
-    foreach i array [
-        if finder find-this [
-            either with-index [
-                either every [
-                    append/only collected reduce [i (real-index ndx)]
-                ] [
-                    return reduce [i (real-index ndx)]
-                ]
-            ] [
-                either every [
-                    append/only collected i
-                ] [
-                    return i
-                ]
-            ]
-        ]
-        ndx: ndx + 1
-    ]
-    if every [
-        either ((length? collected) = 0) [
-            return false
-        ] [
-            return collected
-        ]
-    ]
-    return false
-]
 pick-deep: function [val index [block!]] [
     res: val
     foreach i index [
         res: pick res i
     ]
     return res
-]
-forskip: function ['word [word!] length [integer!] body [block!]] [
-    unless positive? length [cause-error 'script 'invalid-arg [length]]
-    unless series? get word [
-        do make error! {forskip expected word argument to refer to a series}
-    ]
-    orig: get word
-    while [any [not tail? get word (set word orig false)]] [
-        set/any 'result do body
-        set word skip get word length
-        get/any 'result
-    ]
 ]
 search-in-block-at: function [
     blk [any-type!]
@@ -1603,19 +1511,6 @@ get-unique-version-name: function [file-path] [
     time-stamp: get-timestamp-string
     filename: rejoin [filename "-" time-stamp "." file-parts/2]
     return to-file reduce [path-parts/1 filename]
-]
-get-text-size: func [txt [string!] /padded padding [pair!] /font fnt-name] [
-    txt-pad: either padded [
-        padding
-    ] [
-        0x0
-    ]
-    either font [
-        l: layout compose [t1: text (mold txt) font-name (mold fnt-name)]
-    ] [
-        l: layout compose [t1: text (mold txt)]
-    ]
-    return ((size-text t1) + txt-pad)
 ]
 file-modified?: closure [
     track-files: [] [block!]

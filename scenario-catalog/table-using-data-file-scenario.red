@@ -1,5 +1,5 @@
 Red [
-	Title: "table-for-data-file-scenario.red"
+	Title: "table-using-data-file-scenario.red"
 	Needs: View
 	Comment: "Generated with Direct Code"
 ]
@@ -9,8 +9,8 @@ do setup: [
 ]
 
 ;Direct Code VID Code source marker - DO NOT MODIFY THIS LINE OR THE NEXT LINE!
-table-for-data-file-scenario-layout: [
-	style table-for-data-file: panel "panel1" 128.128.128
+table-using-data-file-scenario-layout: [
+	style table-using-data-file: panel "panel1" 128.128.128
 		extra [
 			setup-style: [
 				[
@@ -68,14 +68,14 @@ table-for-data-file-scenario-layout: [
 				]
 			]
 		]
-	table-for-data-file1: table-for-data-file [
+	table-using-data-file1: table-using-data-file [
 		origin 2x2
-		table1: table 400x100 data []
+		table1: table 400x100 data [["id"] [1]]
 	]
 			
 ]
 
 ;Direct Code Show Window source marker - DO NOT MODIFY THIS LINE OR THE NEXT LINE!
 do show-window: [
-	view table-for-data-file-scenario-layout
+	view table-using-data-file-scenario-layout
 ]

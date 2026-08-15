@@ -30,7 +30,7 @@ direct-code-requesters: context [
         return return-value
     ]
     set 'request-multiline-text function [
-        "Written by: Mike Yaunish "
+        "Written by: Mike Yaunish. V2"
         msg [string!]
         /size area-size [pair!]
         /preload prestr [string!]
@@ -74,21 +74,22 @@ direct-code-requesters: context [
                 face/flags: none
             ]
             on-key [
-                if event/key = 'F1 [
-                    --multiline-result: --multiline-area/text
-                    unview
-                ]
                 if all [(event/key = 'F5) submit] [
                     --multiline-result: --multiline-area/text
                     do bind submit-code '--multiline-result
                 ]
                 if event/key = #"^[" [
+                    print "request-multline-text ESC pressed"
                     --multiline-result: none
+                    unview
+                ]
+                if event/key = 'F12 [
+                    --multiline-result: --multiline-area/text
                     unview
                 ]
             ]
             return
-            button "     OK / (F1 key)" [
+            button "     OK  (F12)" [
                 --multiline-result: --multiline-area/text
                 unview
             ]

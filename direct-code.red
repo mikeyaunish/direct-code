@@ -2,8 +2,9 @@ Red [
     Title:   "Direct Code"
     Author:  "Mike Yaunish / Nenad Rakocevic / Didier Cadieu /"
     File:    %direct-code.red
-    Version: 4.0.0
+    Version: 5.0.0
     Needs:   'View
+    url: https://github.com/mikeyaunish/direct-code
     Requires: 10-Oct-2023/9:48:47-06:00
     Usage:  {
         Continuation of sample livecode-enhanced.red script. from Nenad and Didier.
@@ -26,7 +27,8 @@ Red [
         2.0.1 "15-02-2021"   {Correctly parse blocks imbedded in vid code}
         3.0.0 "19-03-2022"   {Full rewrite of the code generation engine (again) using transcode.
                               Rebuild the VID Object Editor to enable changing every facet of an object.}
-		4.0.0 "02-06-2024"   {Added: Insert Tool, Style Object Editor, Scenario and setup-style code blocks}                               
+		4.0.0 "02-06-2024"   {Added: Insert Tool, Style Object Editor, Scenario and setup-style code blocks} 
+		5.0.0 "14-08-2026"	 {Include full table-template package to direct-code. All func keys need Ctrl + Shift now}                              
     ]
     Tabs: 4
 ]
@@ -260,37 +262,6 @@ dc-ctx: context [
 		]
 		return fnd-face?
 	]	
-
-
-	old-in-output-panel?: function [
-		object
-	][
-		output-panel-found?: #(false)
-		until [
-			either not none? object/parent [
-				if not none? object/parent/data [
-					if (first object/parent/data) = 'dc-output-panel [
-						output-panel-found?: #(true)
-						break
-					]	
-				]
-			][
-				false
-			]
-			? object/parent/text
-			either not none? object/parent/text [
-			 	either object/parent/text = "Direct Code" [ 
-					true 
-				][
-					object: object/parent 
-					false
-				]
-			][
-				false
-			]
-		]
-		return output-panel-found?
-	]
 
     get-list-of-styles: function [] [
     	results: collect [
@@ -571,9 +542,9 @@ dc-ctx: context [
         file-data [string!]
         /extern vid-code-marker
     ][
-        extract-from-source file-data rejoin [ "^/do setup:" ] vid-code-marker
+        ;extract-from-source file-data rejoin [ "^/do setup:" ] vid-code-marker
+        extract-from-source file-data "^/do setup:" vid-code-marker
     ]
-
 
     set 'get-vid-code function [
         file-data [string!]
@@ -757,11 +728,12 @@ dc-ctx: context [
 
     set 'recent-menu closure [ ;-- recent-menu:
         recent-file-list: [] [block!]
-        max-entries: 11
+        max-entries: 14
     ][
         /add-item filename [file!]
         /get-item item-num [number!]
         /get-all
+        /get-previous
         /set-all value [ block! ]
         /local push-into-menu ndx file-fnd
     ][
@@ -774,7 +746,7 @@ dc-ctx: context [
             ndx: 1
             remove/part mainwin/menu/2/:recent-menu-location (length? mainwin/menu/2/:recent-menu-location )
             foreach i recent-file-list [
-                append mainwin/menu/2/:recent-menu-location reduce [ (to-string second split-path i) to-word rejoin [ "recent-" ndx ] ]
+                insert mainwin/menu/2/:recent-menu-location reduce [ (to-string second split-path i) to-word rejoin [ "recent-" ndx ] ]
                 ndx: ndx + 1
             ]
         ]
@@ -789,13 +761,19 @@ dc-ctx: context [
                 return pick recent-file-list item-num
             ]
             get-all [
-                prin ""
                 return recent-file-list
             ]
             set-all [
                 foreach i value [
                     push-into-menu i
                 ]
+            ]
+            get-previous [
+            	foreach file recent-file-list [
+            		if file <> current-file [
+            			return file
+            		]
+            	]
             ]
         ]
     ]
@@ -900,7 +878,6 @@ dc-ctx: context [
                     ][
                         save-direct-code dc-reactor/current-file
                     ]
-
                     file-modified? dc-reactor/current-file                              ;-- reset timestamp
                     check-for-file-change/rate: curr-rate
                 ]
@@ -1305,6 +1282,8 @@ dc-ctx: context [
         if all [ 
         	( event/key = 'F12) 
         	(event/type = 'key-up) 
+			((first event/flags) = 'control )		
+			((second event/flags) = 'shift )        	
         ][
             restart-direct-code
         ]
@@ -1355,6 +1334,8 @@ dc-ctx: context [
 		if all [
 			(event/key = 'F2)
 			(event/type = 'key-up)
+			((first event/flags) = 'control )		
+			((second event/flags) = 'shift )			
 		][
 			handle-over-face event "move-object"
 			do-events
@@ -1375,7 +1356,9 @@ dc-ctx: context [
 		
 		if all [						
 			(event/key = 'F3)			
-			(event/type = 'key-up)		
+			(event/type = 'key-up)
+			((first event/flags) = 'control )		
+			((second event/flags) = 'shift )					
 		][								                                       				
 			handle-over-face event "highlight-source-object"
 			do-events
@@ -1384,6 +1367,8 @@ dc-ctx: context [
         if all [ 
         	event/key = 'F4  
         	event/type = 'key-up 
+        	((first event/flags) = 'control )		
+			((second event/flags) = 'shift )
         ][
 			handle-over-face/lock event "highlight-source-object"
 			do-events
@@ -1463,7 +1448,7 @@ dc-ctx: context [
 
         if all [		;-- Escape key
         	(event/key = #"^[") 
-        	(event/type = 'key-up) 
+        	(event/type = 'key-up)
        	][
 			un-highlight-source-object/quiet "" "" ""
 			clear-vid-code-selected
@@ -1484,6 +1469,12 @@ dc-ctx: context [
 			select-current-face event face
         ]
         
+        if event/key = #"^C"[
+            if event/flags = [control shift] [
+                clear-screen
+            ]
+        ]        
+        
         if event/key = #"^S"[
             either event/flags = [control shift] [
                 save-dc
@@ -1499,7 +1490,7 @@ dc-ctx: context [
         ]        
 
         if all [ ((first event/flags) = 'alt ) (event/key = 'left ) (event/type = 'key-up ) ][
-            load-and-run recent-menu/get-item 1
+            load-and-run recent-menu/get-previous
         ]
 
         if event/key = #"^Z"[
@@ -1530,21 +1521,51 @@ dc-ctx: context [
             do-events
         ]
         
-        if all [ event/key = 'F11 (event/type = 'key-up) ] [
+        if all [ 
+        	event/key = 'F11 
+        	(event/type = 'key-up) 
+			((first event/flags) = 'control )		
+			((second event/flags) = 'shift )        	
+        ][
         		system/view/debug?: xor~ system/view/debug? true	
         ]
-        if all [ event/key = 'F7 (event/type = 'key-up) ] [
+        if all [ 
+        	event/key = 'F7 
+        	(event/type = 'key-up) 
+			((first event/flags) = 'control )		
+			((second event/flags) = 'shift )        	
+        ][
             run-user-script
         ]
-        if all [ (event/key = 'F8) (event/type = 'key-up) ] [
+        if all [ 
+        	event/key = 'F8 
+        	(event/type = 'key-up) 
+			((first event/flags) = 'control )		
+			((second event/flags) = 'shift )        	
+        ] [
             either global-logging [ change-logging/off ][ change-logging/on ]
         ]
-        if all [ event/key = 'F10  event/type = 'key-up ][
+        if all [ 
+        	event/key = 'F10  
+        	event/type = 'key-up 
+			((first event/flags) = 'control )		
+			((second event/flags) = 'shift )        	
+        ][
         ]
-        if all [ event/key = 'F9  event/type = 'key-up ][
+        if all [ 
+        	event/key = 'F9  
+        	event/type = 'key-up 
+			((first event/flags) = 'control )		
+			((second event/flags) = 'shift )        	
+        ][
             run-program-separately
         ]
-        if all [ event/key = 'F6  event/type = 'key-up ][
+        if all [ 
+        	event/key = 'F6  
+        	event/type = 'key-up 
+			((first event/flags) = 'control )		
+			((second event/flags) = 'shift )        	
+        ][
             do-current-file
         ]
 
@@ -1852,7 +1873,7 @@ dc-ctx: context [
 						popup-help/close ""
 						do-events
 					]	            	
-	                load-and-run recent-menu/get-item 1
+	                load-and-run recent-menu/get-previous
 	            ]
 	            on-create [	face/flags: none ]
             space 1x1
@@ -1984,8 +2005,6 @@ dc-ctx: context [
                             ]
                         ]
                         set 'do-red-cmd does [ ;-- do-red-cmd:
-                            lprint [ "do-red-cmd #START do-red-cmd =" red-cmd-field/text ]
-
                             remove-each entry red-cmd-field/extra/history [ entry = red-cmd-field/text ]
                             append/only red-cmd-field/extra/history (copy red-cmd-field/text)
                             red-cmd-field/extra/index: 1
@@ -2763,8 +2782,6 @@ dc-ctx: context [
                     return o-info/token
                 ]
 
-
-
                 set 'highlight-gui function [ ;-- highlight-gui:
                 	obj [string! object!]
                 ][ 
@@ -3306,7 +3323,6 @@ dc-ctx: context [
 	                	menu-code: [ to-word action obj-name obj-position last-char selected-obj after ]		
 	                ]
 
-                	lprint [ "voe-menu-handler menu-code =" mold reduce menu-code]
                     either error? err: try/all  [
                         do bind (reduce menu-code ) 'delete-object
                         true ;-- try return value
@@ -3355,9 +3371,9 @@ dc-ctx: context [
                 "Reload when File changes: OFF"  reload-when-changed-off
             ]
 
-            "Run Separately    F9"       run-separate
-            "Do File (Attached)    F6"   do-the-current-file
-            "Restart Direct Code    F12" restart-program
+            "Run Separately    Ctrl + Shift + F9"       run-separate
+            "Do File (Attached)    Ctrl + Shift + F6"   do-the-current-file
+            "Restart Direct Code    Ctrl + Shift + F12" restart-program
         ]
         "Edit" [
             "Setup Code" [
@@ -3379,15 +3395,16 @@ dc-ctx: context [
         "Debug" [
             "Logging" [
                 "View Log File"     show-log
-                "Logging OFF -    F8"  change-logging-off
-                "Logging ON   -    F8" change-logging-on
+                "Logging OFF -    Ctrl + Shift + F8"  change-logging-off
+                "Logging ON  -    Ctrl + Shift + F8" change-logging-on
             ]
 
             "System" [
                 "Dump Reactions"                show-all-reactions
-                "System/view/debug ON -    F11"    system-view-debug-on
-                "System/view/debug OFF-    F11"    system-view-debug-off
+                "System/view/debug ON  -    Ctrl + Shift + F11"    system-view-debug-on
+                "System/view/debug OFF -    Ctrl + Shift + F11"    system-view-debug-off
             ]
+            "Clear Console Screen  -     Ctrl + Shift + C" clear-console-screen
         ]
         "Settings" [
             "Red Executable"    			set-red-exe
@@ -3399,7 +3416,7 @@ dc-ctx: context [
             "Insert Tool NOT Pinned" 		insert-tool-pinned-off
         ]
         "User" [
-            "Run User Script   F7" run-user-stuff
+            "Run User Script   Ctrl + Shift + F7" run-user-stuff
             "Edit User Script" edit-user-stuff
         ]
         "Help" [
@@ -3455,6 +3472,7 @@ dc-ctx: context [
 
                 system-view-debug-on  [ system/view/debug?: true ]
                 system-view-debug-off [ system/view/debug?: false ]
+                clear-console-screen  [ clear-screen ]
                 evo-after-insert-on   [ evo-after-insert/on  ]
                 evo-after-insert-off  [ evo-after-insert/off ]
                 insert-tool-pinned-on [ insert-tool-pinned/on ]
